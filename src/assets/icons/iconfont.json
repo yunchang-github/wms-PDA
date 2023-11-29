@@ -1,0 +1,51 @@
+{
+  "id": "3610877",
+  "name": "仓库移动端",
+  "font_family": "iconfont",
+  "css_prefix_text": "icon-",
+  "description": "",
+  "glyphs": [
+    {
+      "icon_id": "18061781",
+      "name": "盘库",
+      "font_class": "panku",
+      "unicode": "e695",
+      "unicode_decimal": 59029
+    },
+    {
+      "icon_id": "15816376",
+      "name": "021抽屉",
+      "font_class": "021chouti",
+      "unicode": "e7de",
+      "unicode_decimal": 59358
+    },
+    {
+      "icon_id": "18012598",
+      "name": "抽屉",
+      "font_class": "drawer",
+      "unicode": "e63e",
+      "unicode_decimal": 58942
+    },
+    {
+      "icon_id": "3239723",
+      "name": "出库",
+      "font_class": "chuku",
+      "unicode": "e602",
+      "unicode_decimal": 58882
+    },
+    {
+      "icon_id": "3239733",
+      "name": "入库",
+      "font_class": "ruku",
+      "unicode": "e606",
+      "unicode_decimal": 58886
+    },
+    {
+      "icon_id": "7158868",
+      "name": "库存统计",
+      "font_class": "kucuntongji",
+      "unicode": "e665",
+      "unicode_decimal": 58981
+    }
+  ]
+}

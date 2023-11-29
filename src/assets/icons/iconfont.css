@@ -1,0 +1,39 @@
+@font-face {
+  font-family: "iconfont"; /* Project id 3610877 */
+  src: url('iconfont.woff2?t=1680230982461') format('woff2'),
+       url('iconfont.woff?t=1680230982461') format('woff'),
+       url('iconfont.ttf?t=1680230982461') format('truetype');
+}
+
+.iconfont {
+  font-family: "iconfont" !important;
+  font-size: 16px;
+  font-style: normal;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.icon-panku:before {
+  content: "\e695";
+}
+
+.icon-021chouti:before {
+  content: "\e7de";
+}
+
+.icon-drawer:before {
+  content: "\e63e";
+}
+
+.icon-chuku:before {
+  content: "\e602";
+}
+
+.icon-ruku:before {
+  content: "\e606";
+}
+
+.icon-kucuntongji:before {
+  content: "\e665";
+}
+
