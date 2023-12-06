@@ -19,11 +19,36 @@ const routes = [
     name: "Home",
     component: resolve => require(["@/views/Home.vue"], resolve)
   },
-  // {
-  //   path: "/SkuSeparationDetail",
-  //   name: "skuSeparationDetail",
-  //   component: resolve => require(["@/views/StockPage/SkuSeparationDetail.vue"], resolve)
-  // },
+  {
+    path: "/AllPutawayPage",
+    name: "AllPutawayPage",
+    component: resolve => require(["@/views/inbound/AllPutawayPage.vue"], resolve)
+  },
+  {
+    path: "/BoxNoPutaway",
+    name: "BoxNoPutaway",
+    component: resolve => require(["@/views/inbound/BoxNoPutaway.vue"], resolve)
+  },
+  {
+    path: "/InventoryBylocation",
+    name: "InventoryBylocation",
+    component: resolve => require(["@/views/inventory/InventoryBylocation.vue"], resolve)
+  },
+  {
+    path: "/LocationMerge",
+    name: "LocationMerge",
+    component: resolve => require(["@/views/translocation/LocationMerge.vue"], resolve)
+  },
+  {
+    path: "/BoxCargoShift",
+    name: "BoxCargoShift",
+    component: resolve => require(["@/views/translocation/BoxCargoShift.vue"], resolve)
+  },
+  {
+    path: "/SkuCargoShift",
+    name: "SkuCargoShift",
+    component: resolve => require(["@/views/translocation/SkuCargoShift.vue"], resolve)
+  },
 ];
 
 const router = new VueRouter({

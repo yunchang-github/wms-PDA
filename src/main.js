@@ -8,6 +8,8 @@ import "amfe-flexible";
 import './assets/icons/iconfont.css'
 import './assets/icons/iconfont.js'
 
+/**引入全局样式表*/
+import "./assets/public.css";
 import Vant from "vant";
 import "vant/lib/index.css";
 
@@ -23,20 +25,20 @@ Vue.directive("longpress", {
       return;
     }
     var timer = null;
-    vnode.start = function(e) {
+    vnode.start = function (e) {
       // 如果是点击事件，不启动计时器，直接返回
       if (e.type === "click") {
         return;
       }
       if (timer == null) {
         // 创建定时器 ( value.time ms之后执行长按功能函数 )
-        timer = setTimeout(function() {
+        timer = setTimeout(function () {
           //执行长按功能函数
           binding.value.cb();
         }, binding.value.time);
       }
     };
-    vnode.cancel = function() {
+    vnode.cancel = function () {
       if (timer !== null) {
         clearTimeout(timer);
         timer = null;
@@ -69,7 +71,7 @@ Vue.directive("longpress", {
 });
 new Vue({
   router,
-  render: function(h) {
+  render: function (h) {
     return h(App);
   }
 }).$mount("#app");

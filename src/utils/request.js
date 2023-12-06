@@ -185,10 +185,16 @@ service.interceptors.response.use(
         });
       }
     } else if (code === 500) {
-      Toast(msg)
+      Toast.fail({
+        message: msg, //数量为空
+        position: "top",
+      });
       return Promise.reject(new Error(msg));
     } else if (code !== 200) {
-      Toast(res.data.msg);
+      Toast.fail({
+        message: res.data.msg, //数量为空
+        position: "top",
+      });
       return Promise.reject(res.data.msg);
     } else {
       return res.data;
@@ -257,7 +263,10 @@ service.interceptors.response.use(
     if (error.config.url.indexOf("/authentication/form") !== -1) {
       message = error.response.data.content;
     }
-    Toast(message);
+    Toast.fail({
+      message: message, //数量为空
+      position: "top",
+    });
     return Promise.reject(error);
   }
 );
@@ -265,10 +274,13 @@ service.interceptors.response.use(
 function handleAuthorized() {
   if (!isRelogin.show) {
     isRelogin.show = true;
-    Toast("登录状态已过期");
+    Toast.fail({
+      message: "登录状态已过期", //数量为空
+      position: "top",
+    });
     isRelogin.show = false;
     sessionStorage.removeItem("wmsToken");
-    location.href = process.env.NODE_ENV === 'production'?"/phone/wms/":"/";
+    location.href = process.env.NODE_ENV === 'production' ? "/phone/wms/" : "/";
   }
   return Promise.reject("无效的会话，或者会话已过期，请重新登录。");
 }
