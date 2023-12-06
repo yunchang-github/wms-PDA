@@ -9,8 +9,8 @@
       <template #right>
         {{ query.warehouseName }}
         <!-- <svg class="icon navBarIcon" aria-hidden="true" @click.stop="goHome">
-          <use xlink:href="#icon-zhuye"></use>
-        </svg> -->
+                <use xlink:href="#icon-zhuye"></use>
+              </svg> -->
       </template>
     </van-nav-bar>
     <div class="pageContainer">
@@ -18,38 +18,24 @@
         <!-- 起始货位 -->
         <van-cell-group>
           <van-field
-            disabled
             ref="focusInputRef1"
             v-model.trim="locationNameStart"
             label="Start Location"
             label-width="100px"
             placeholder="Click to type location"
+            @keydown.enter="locationNameStartEnter"
           >
-            <template v-if="query.pageFlag !== 'pallet'" #button>
+            <template #button>
               <div style="line-height: 0">
-                <van-button size="mini" type="info" @click="getList"
-                  >Search</van-button
+                <van-button size="mini" type="warning" @click="clearDataFun"
+                  >Clear</van-button
                 >
               </div>
             </template>
           </van-field>
         </van-cell-group>
-        <!-- 托盘号 -->
-        <template v-if="query.pageFlag === 'pallet'">
-          <van-cell-group>
-            <van-field
-              ref="focusInputRef2"
-              v-model.trim="palletNumber"
-              label="Pallet NO."
-              label-width="100px"
-              placeholder="Click to type pallet NO."
-              @keydown.enter="palletEnter"
-            >
-            </van-field>
-          </van-cell-group>
-        </template>
         <!-- 整箱 -->
-        <template v-else-if="query.pageFlag === 'box'">
+        <template v-if="query.pageFlag === 'box'">
           <van-cell-group>
             <van-field
               ref="focusInputRef2"
@@ -58,6 +44,7 @@
               label-width="100px"
               placeholder="Click to type boxNO."
               @keydown.enter="boxNoAndSkuEnter('boxNo', 'boxNO.')"
+              :disabled="disabledBoxAndSku"
             >
               <template #button>
                 <div style="line-height: 0" class="flexBetweenCenter">
@@ -77,7 +64,7 @@
           </van-cell-group>
         </template>
         <!-- 散货 -->
-        <template v-else>
+        <template v-else-if="query.pageFlag === 'sku'">
           <van-cell-group>
             <van-field
               ref="focusInputRef2"
@@ -86,6 +73,7 @@
               label-width="100px"
               placeholder="Click to type SKU"
               @keydown.enter="boxNoAndSkuEnter('sku', 'SKU')"
+              :disabled="disabledBoxAndSku"
             >
               <template #button>
                 <div style="line-height: 0" class="flexBetweenCenter">
@@ -152,8 +140,8 @@
                 }"
               >
                 <!-- <div>
-
-                  </div> -->
+  
+                    </div> -->
                 <div style="display: flex; margin-bottom: 6px">
                   <div
                     style="
@@ -237,7 +225,7 @@
                         border: 1px solid #ccc;
                         box-sizing: border-box;
                       "
-                      @keydown.enter="PutawayBtn(item)"
+                      @keydown.enter="ShiftBtn(item)"
                     />
                   </van-col>
                   <template v-if="item.inStorageStatus === 1">
@@ -274,6 +262,19 @@
                       </div>
                     </van-col>
                   </template>
+                  <van-col v-if="item.inStorageStatus === 1" span="5"
+                    ><div>
+                      <!-- <van-button
+                        :disabled="
+                          !(item.adjustQuantity && item.locationNameTarget)
+                        "
+                        size="mini"
+                        type="primary"
+                        @click.stop="ShiftBtn(item)"
+                        >Shift</van-button
+                      > -->
+                    </div>
+                  </van-col>
                 </van-row>
               </div>
             </van-cell>
@@ -283,8 +284,8 @@
     </div>
   </div>
 </template>
-
-<script>
+  
+  <script>
 import { selPageList } from "@/api/inventory/InventoryBylocation";
 import { addAndRemove } from "@/api/translocation/LocationMerge";
 import { Toast } from "vant";
@@ -293,17 +294,17 @@ export default {
     let PageData = {
       pallet: {
         prop: "palletNumber",
-        navBarTitle: "Pallet Putaway",
+        navBarTitle: "Location Shift",
         inStorageStatus: null,
       },
       box: {
         prop: "boxNo",
-        navBarTitle: "BoxNO. Putaway",
+        navBarTitle: "BoxNO. Shift",
         inStorageStatus: 1,
       },
       sku: {
         prop: "sku",
-        navBarTitle: "SKU Putaway",
+        navBarTitle: "SKU Shift",
         inStorageStatus: 2,
       },
     };
@@ -311,9 +312,8 @@ export default {
     return {
       commonData: PageData[that.$route.query.pageFlag],
       query: that.$route.query,
-      locationNameStart: "临时货位",
+      locationNameStart: "",
       locationNameTarget: "",
-      palletNumber: "", //PHY16
       sku: "",
       boxNo: "",
       listContainerHeight: 0,
@@ -332,11 +332,7 @@ export default {
     disabledTarget() {
       let flag = true;
       if (this.query.pageFlag === "pallet") {
-        flag = Boolean(
-          this.locationNameStart &&
-            this.palletNumber &&
-            this.searchList.length > 0
-        );
+        flag = Boolean(this.locationNameStart && this.searchList.length > 0);
       } else {
         flag = Boolean(
           this.locationNameStart &&
@@ -346,8 +342,22 @@ export default {
       }
       return !flag;
     },
+    disabledBoxAndSku() {
+      let flag = Boolean(this.locationNameStart && this.searchList.length > 0);
+      return !flag;
+    },
   },
   methods: {
+    // 起始货位回车
+    locationNameStartEnter() {
+      if (!this.locationNameStart) {
+        return Toast.fail({
+          message: `Start Location is empty`, //查询条件为空
+          position: "top",
+        });
+      }
+      this.getList("focusInputRef2");
+    },
     // 箱号回车  存储箱号
     boxNoAndSkuEnter(prop, label) {
       let isHaveItem = null;
@@ -374,16 +384,6 @@ export default {
         arr.unshift(obj); // 将该对象添加到数组的开头
       }
     },
-    // 托盘回车
-    palletEnter() {
-      if (!this.palletNumber) {
-        return Toast.fail({
-          message: `Pallet NO. is empty`, //查询条件为空
-          position: "top",
-        });
-      }
-      this.getList("focusInputRef3");
-    },
     // 移位
     async chiftBtn() {
       if (this.locationNameTarget === this.locationNameStart) {
@@ -402,7 +402,7 @@ export default {
         );
       }
       await addAndRemove(list, {
-        type: 4,
+        type: 1,
         locationName: this.locationNameTarget,
       });
       Toast.success({
@@ -413,7 +413,7 @@ export default {
       this.resetDataFun();
     },
     // 单个上架
-    async PutawayBtn(item) {
+    async ShiftBtn(item) {
       if (item.locationNameTarget === item.locationName) {
         item.locationNameTarget = "";
         return Toast.fail({
@@ -422,7 +422,7 @@ export default {
         });
       }
       await addAndRemove([item], {
-        type: 4,
+        type: 1,
         locationName: item.locationNameTarget,
       });
       Toast.success({
@@ -437,22 +437,30 @@ export default {
       if (this.query.pageFlag === "pallet") {
         this.searchList = [];
         this.list = [];
-        this.palletNumber = "";
+        this.locationNameStart = "";
         this.locationNameTarget = "";
         this.$nextTick(() => {
-          this.$refs.focusInputRef2 && this.$refs.focusInputRef2.focus();
+          this.$refs.focusInputRef1 && this.$refs.focusInputRef1.focus();
         });
       } else {
         this.locationNameTarget = "";
         this.getList("focusInputRef2");
       }
     },
+    // 清空
+    clearDataFun() {
+      this.searchList = [];
+      this.list = [];
+      this.locationNameStart = "";
+      this.$nextTick(() => {
+        this.$refs.focusInputRef1 && this.$refs.focusInputRef1.focus();
+      });
+    },
     // 调接口获取数据
     async getList(inputRef) {
       const data = {
         warehouseId: this.query.warehouseId,
         locationName: this.locationNameStart,
-        palletNumber: this.palletNumber,
         inStorageStatus: this.commonData.inStorageStatus,
       };
       this.searchLoading = true;
@@ -519,8 +527,12 @@ export default {
     },
   },
   mounted() {
+    this.$nextTick(() => {
+      this.$refs.focusInputRef1 && this.$refs.focusInputRef1.focus();
+    });
     if (this.query.pageFlag !== "pallet") {
-      this.getList("focusInputRef2");
+      //   this.locationNameStart = "临时货位";
+      //   this.getList("focusInputRef2");
     }
     // 获取list高度 pageContainer - vanCeliContainer getBoundingClientRect
     let pageContainerHeight = document
@@ -533,8 +545,8 @@ export default {
   },
 };
 </script>
-    
-<style lang="scss" scoped>
+      
+  <style lang="scss" scoped>
 #AllPutawayPage {
   height: 100vh;
   width: 100vw;

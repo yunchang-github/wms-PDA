@@ -19,35 +19,23 @@ const routes = [
     name: "Home",
     component: resolve => require(["@/views/Home.vue"], resolve)
   },
+  // 所有上架页面
   {
     path: "/AllPutawayPage",
     name: "AllPutawayPage",
     component: resolve => require(["@/views/inbound/AllPutawayPage.vue"], resolve)
   },
-  {
-    path: "/BoxNoPutaway",
-    name: "BoxNoPutaway",
-    component: resolve => require(["@/views/inbound/BoxNoPutaway.vue"], resolve)
-  },
+  // 盘点
   {
     path: "/InventoryBylocation",
     name: "InventoryBylocation",
     component: resolve => require(["@/views/inventory/InventoryBylocation.vue"], resolve)
   },
+  // 所有转移页面
   {
-    path: "/LocationMerge",
-    name: "LocationMerge",
-    component: resolve => require(["@/views/translocation/LocationMerge.vue"], resolve)
-  },
-  {
-    path: "/BoxCargoShift",
-    name: "BoxCargoShift",
-    component: resolve => require(["@/views/translocation/BoxCargoShift.vue"], resolve)
-  },
-  {
-    path: "/SkuCargoShift",
-    name: "SkuCargoShift",
-    component: resolve => require(["@/views/translocation/SkuCargoShift.vue"], resolve)
+    path: "/AllShiftPage",
+    name: "AllShiftPage",
+    component: resolve => require(["@/views/translocation/AllShiftPage.vue"], resolve)
   },
 ];
 
