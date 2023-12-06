@@ -58,10 +58,10 @@ export default {
     submit() {
       let that = this;
       if (this.username.trim().length > 0 && this.password.trim().length >= 6) {
-        sessionStorage.removeItem("wmsToken");
+        // sessionStorage.removeItem("wmsToken");
         let password=encrypt(this.password)
         login(this.username, password,"none", this.deviceId).then(res => {
-          sessionStorage.setItem("wmsToken", res.token_type +" "+res.access_token);
+          // sessionStorage.setItem("wmsToken", res.token_type +" "+res.access_token);
           let expiresIn = new Date(new Date().getTime() + res.expires_in * 1000);
           Cookies.set("wms-admin-Token", res.token_type +" "+res.access_token, {expires: expiresIn});
           Cookies.set("wms-admin-Refresh-Token", res.refresh_token, {expires: new Date(new Date().getTime() + 600000 * 1000)});
