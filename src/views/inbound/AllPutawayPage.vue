@@ -325,9 +325,7 @@ export default {
       checkList: [],
     };
   },
-  created() {
-    console.log(this.commonData);
-  },
+  created() {},
   computed: {
     disabledTarget() {
       let flag = true;

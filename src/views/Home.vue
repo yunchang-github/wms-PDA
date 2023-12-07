@@ -3,17 +3,24 @@
     <div class="homeContainter">
       <!-- 仓库选择 -->
       <div style="margin-bottom: 20px">
-        <van-field
-          readonly
-          clickable
-          name="picker"
-          v-model="warehouseName"
-          label="Select warehouse"
-          label-width="140px"
-          placeholder="Please select"
-          @click="showPicker = true"
-          right-icon="arrow-down"
-        />
+        <template v-if="warehouseLoading">
+          <van-loading color="#0094ff" vertical>
+            Loading warehouse
+          </van-loading>
+        </template>
+        <template v-else>
+          <van-field
+            readonly
+            clickable
+            name="picker"
+            v-model="warehouseName"
+            label="Select warehouse"
+            label-width="140px"
+            placeholder="Please select"
+            @click="showPicker = true"
+            right-icon="arrow-down"
+          />
+        </template>
         <van-popup v-model="showPicker" position="bottom">
           <van-picker
             ref="pickerRef"
@@ -57,15 +64,19 @@
 </template>
 
 <script>
-import { selPageList as selWarehouseList } from "@/api/overseasWarehouse/warehouseInfoManager";
-// import { getInfo } from "@/api/index";
+import {
+  selPageList as selWarehouseList,
+  selWarehouseOperateLog,
+  saveWarehouseOperateLog,
+} from "@/api/overseasWarehouse/warehouseInfoManager";
 import { Toast } from "vant";
 export default {
   data() {
     return {
+      warehouseLoading: true,
       showPicker: false,
-      warehouseId: 1,
-      warehouseName: "美西海外仓",
+      warehouseId: "",
+      warehouseName: "",
       defaultIndex: 0,
       warehouseOptions: [],
       mainPageList: [
@@ -145,13 +156,36 @@ export default {
       ],
     };
   },
+  async created() {
+    await this.selWarehouseOperateLog();
+    await this.getWarehouseOptions();
+  },
   methods: {
-    onConfirm(value) {
-      this.warehouseName = value.text;
-      this.warehouseId = value.id;
-      this.showPicker = false;
+    // 确认选择
+    async onConfirm(value) {
+      try {
+        await saveWarehouseOperateLog({ warehouseId: value.id });
+        this.warehouseName = value.text;
+        this.warehouseId = value.id;
+        this.showPicker = false;
+        Toast.success({
+          message: "Select success", //选择成功
+          position: "top",
+        });
+      } catch (e) {
+        console.log(e);
+        this.warehouseName = "";
+        this.warehouseId = "";
+        this.defaultIndex = 0;
+      }
     },
+    // 去往其他页面
     goOtherPage(labelItem) {
+      if (!this.warehouseName)
+        return Toast.fail({
+          message: "The warehouse not select", //数量为空
+          position: "top",
+        });
       if (labelItem.pageName) {
         Toast.clear();
         this.$router.push({
@@ -171,29 +205,42 @@ export default {
         });
       }
     },
-    async getWarehouseOptions() {
-      const data = {
-        pageNum: 1,
-        pageSize: 9999,
-      };
-      const { data: res } = await selWarehouseList(data);
-      this.warehouseOptions = res.list.map((item) => {
-        return {
-          id: item.id,
-          text: item.warehouseName,
-        };
-      });
-      let index = this.warehouseOptions.findIndex(
-        (item) => this.warehouseName === item.text
-      );
-      this.defaultIndex = index;
+    // 查询pda用户选择看哪个仓库
+    async selWarehouseOperateLog() {
+      const { data: res } = await selWarehouseOperateLog();
+      if (res) {
+        this.warehouseId = res.warehouseId;
+        this.warehouseName = res.warehouseName;
+      }
     },
-  },
-  created() {
-    this.getWarehouseOptions();
-    // getInfo().then((res) => {
-    //   console.log("测试", res);
-    // });
+    async getWarehouseOptions() {
+      try {
+        const data = {
+          pageNum: 1,
+          pageSize: 9999,
+        };
+        const { data: res } = await selWarehouseList(data);
+        this.warehouseOptions = res.list.map((item) => {
+          return {
+            id: item.id,
+            text: item.warehouseName,
+          };
+        });
+        // 是否初始有值
+        if (this.warehouseName) {
+          let index = this.warehouseOptions.findIndex(
+            (item) => this.warehouseName === item.text
+          );
+          this.defaultIndex = index;
+        } else {
+          this.defaultIndex = 0;
+        }
+      } catch (e) {
+        console.log(e);
+      } finally {
+        this.warehouseLoading = false;
+      }
+    },
   },
   mounted() {},
 };

@@ -9,3 +9,24 @@ export function selPageList(params) {
         params,
     });
 }
+
+// 用户仓库操作记录表查询
+export function selWarehouseOperateLog(params) {
+    return request({
+        url: PORT4 + "/storage/wmsBaseWarehouseOperateLog/selWarehouseOperateLog",
+        method: "get",
+        params,
+    });
+}
+
+
+// 用户仓库操作记录表新增
+export function saveWarehouseOperateLog(params) {
+    return request({
+        url: PORT4 + "/storage/wmsBaseWarehouseOperateLog/saveWarehouseOperateLog",
+        method: "get",
+        params,
+    });
+}
+
+
