@@ -207,38 +207,38 @@ export default {
     },
     // 查询pda用户选择看哪个仓库
     async selWarehouseOperateLog() {
-      const { data: res } = await selWarehouseOperateLog();
-      if (res) {
-        this.warehouseId = res.warehouseId;
-        this.warehouseName = res.warehouseName;
-      }
-    },
-    async getWarehouseOptions() {
       try {
-        const data = {
-          pageNum: 1,
-          pageSize: 9999,
-        };
-        const { data: res } = await selWarehouseList(data);
-        this.warehouseOptions = res.list.map((item) => {
-          return {
-            id: item.id,
-            text: item.warehouseName,
-          };
-        });
-        // 是否初始有值
-        if (this.warehouseName) {
-          let index = this.warehouseOptions.findIndex(
-            (item) => this.warehouseName === item.text
-          );
-          this.defaultIndex = index;
-        } else {
-          this.defaultIndex = 0;
+        const { data: res } = await selWarehouseOperateLog();
+        if (res) {
+          this.warehouseId = res.warehouseId;
+          this.warehouseName = res.warehouseName;
         }
       } catch (e) {
         console.log(e);
       } finally {
         this.warehouseLoading = false;
+      }
+    },
+    async getWarehouseOptions() {
+      const data = {
+        pageNum: 1,
+        pageSize: 9999,
+      };
+      const { data: res } = await selWarehouseList(data);
+      this.warehouseOptions = res.list.map((item) => {
+        return {
+          id: item.id,
+          text: item.warehouseName,
+        };
+      });
+      // 是否初始有值
+      if (this.warehouseName) {
+        let index = this.warehouseOptions.findIndex(
+          (item) => this.warehouseName === item.text
+        );
+        this.defaultIndex = index;
+      } else {
+        this.defaultIndex = 0;
       }
     },
   },
