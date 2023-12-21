@@ -3,24 +3,17 @@
     <div class="homeContainter">
       <!-- 仓库选择 -->
       <div style="margin-bottom: 20px">
-        <template v-if="warehouseLoading">
-          <van-loading color="#0094ff" vertical>
-            Loading warehouse
-          </van-loading>
-        </template>
-        <template v-else>
-          <van-field
-            readonly
-            clickable
-            name="picker"
-            v-model="warehouseName"
-            label="Select warehouse"
-            label-width="140px"
-            placeholder="Please select"
-            @click="showPicker = true"
-            right-icon="arrow-down"
-          />
-        </template>
+        <van-field
+          readonly
+          clickable
+          name="picker"
+          v-model="warehouseName"
+          label="Select warehouse"
+          label-width="140px"
+          placeholder="Please select"
+          @click="showPicker = true"
+          right-icon="arrow-down"
+        />
         <van-popup v-model="showPicker" position="bottom">
           <van-picker
             ref="pickerRef"
@@ -73,7 +66,6 @@ import { Toast } from "vant";
 export default {
   data() {
     return {
-      warehouseLoading: true,
       showPicker: false,
       warehouseId: "",
       warehouseName: "",
@@ -153,6 +145,30 @@ export default {
             },
           ],
         },
+        {
+          title: "Picking scanning",
+          titleZn: "大货扫描",
+          color: "#d642de",
+          list: [
+            {
+              label: "Scanning of <br> bulk picking",
+              labelZn: "FBA拣货扫描",
+              pageName: "scanPickFBA",
+            },
+          ],
+        },
+        // {
+        //   title: "OUTBOUND",
+        //   titleZn: "出库",
+        //   color: "#00c297",
+        //   list: [
+        //     {
+        //       label: "FBA <br> Delivery",
+        //       labelZn: "发货-FBA-处理",
+        //       pageName: "fbaDelivery",
+        //     },
+        //   ],
+        // },
       ],
     };
   },
@@ -273,6 +289,7 @@ export default {
           .vanColDivClass {
             background-color: #fff;
             padding: 15px;
+            font-size: 14px;
             text-align: center;
           }
         }

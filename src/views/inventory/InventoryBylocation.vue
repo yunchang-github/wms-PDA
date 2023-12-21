@@ -405,7 +405,7 @@ export default {
   },
   mounted() {
     this.$refs["focusInputRef1"].focus();
-    // this.locationName = "临时货位";
+    // this.locationName = "temp";
     // this.getList();
     // 获取list高度 pageContainer - vanCeliContainer getBoundingClientRect
     let pageContainerHeight = document

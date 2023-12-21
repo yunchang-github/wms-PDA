@@ -4,6 +4,7 @@ import errorCode from "@/utils/errorCode";
 import cache from "@/plugins/cache";
 import { refreshToken } from "@/api/index";
 import { getToken, getRefreshToken, setToken } from "@/utils/auth";
+import store from '@/store'
 import Cookies from "js-cookie";
 // 是否显示重新登录
 export let isRelogin = { show: false };
@@ -46,6 +47,12 @@ const service = axios.create({
 // request拦截器
 service.interceptors.request.use(
   (config) => {
+    if (config.isShowLoading) {
+      if (config.loadMsg) {
+        store.commit("updateApiLoadMsg", config.loadMsg)
+      }
+      store.commit("updateApiLoading", true)
+    }
     // 是否需要设置 token
     const isToken = (config.headers || {}).isToken === false;
     if (getToken() && !isToken) {
@@ -110,6 +117,9 @@ service.interceptors.request.use(
 // 响应拦截器
 service.interceptors.response.use(
   async (res) => {
+    if (res.config.isShowLoading) {
+      store.commit("updateApiLoading", false)
+    }
     // 未设置状态码则默认成功状态
     const code = res.data.code || 200;
     // 获取错误信息
@@ -201,6 +211,9 @@ service.interceptors.response.use(
     }
   },
   async (error) => {
+    if (error.config.isShowLoading) {
+      store.commit("updateApiLoading", false)
+    }
     let { message } = error;
     if (message === "Network Error") {
       message = "后端接口连接异常";
@@ -280,11 +293,11 @@ function handleAuthorized() {
       position: "top",
     });
     isRelogin.show = false;
-    let timer=setTimeout(()=>{
+    let timer = setTimeout(() => {
       location.href = process.env.NODE_ENV === 'production' ? "/phone/wms/" : "/";
       clearTimeout(timer)
-    },1000)
-    
+    }, 1000)
+
   }
   return Promise.reject("无效的会话，或者会话已过期，请重新登录。");
 }

@@ -311,7 +311,7 @@ export default {
     return {
       commonData: PageData[that.$route.query.pageFlag],
       query: that.$route.query,
-      locationNameStart: "临时货位",
+      locationNameStart: "temp",
       locationNameTarget: "",
       palletNumber: "", //PHY16
       sku: "",
@@ -382,7 +382,7 @@ export default {
       }
       this.getList("focusInputRef3");
     },
-    // 移位
+    // 上架
     async chiftBtn() {
       if (this.locationNameTarget === this.locationNameStart) {
         this.locationNameTarget = "";
@@ -392,15 +392,17 @@ export default {
         });
       }
       let list = [];
+      let type = 4
       if (this.query.pageFlag === "pallet") {
         list = this.searchList;
       } else {
+        type = 3
         list = this.searchList.filter((item) =>
           this.checkList.includes(item[this.commonData.prop])
         );
       }
       await addAndRemove(list, {
-        type: 4,
+        type,
         locationName: this.locationNameTarget,
       });
       Toast.success({
@@ -420,7 +422,7 @@ export default {
         });
       }
       await addAndRemove([item], {
-        type: 4,
+        type: 3,
         locationName: item.locationNameTarget,
       });
       Toast.success({

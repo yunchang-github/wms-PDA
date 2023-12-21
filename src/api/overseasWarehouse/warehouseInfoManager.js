@@ -16,6 +16,8 @@ export function selWarehouseOperateLog(params) {
         url: PORT4 + "/storage/wmsBaseWarehouseOperateLog/selWarehouseOperateLog",
         method: "get",
         params,
+        isShowLoading: true,
+        loadMsg: 'Loading warehouse'
     });
 }
 

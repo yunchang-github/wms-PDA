@@ -16,7 +16,7 @@
     <div class="pageContainer">
       <div class="vanCeliContainer">
         <!-- 起始货位 -->
-        <van-cell-group>
+        <van-cell-group v-if="query.pageFlag !== 'box'">
           <van-field
             ref="focusInputRef1"
             v-model.trim="locationNameStart"
@@ -44,9 +44,15 @@
               label-width="100px"
               placeholder="Click to type boxNO."
               @keydown.enter="boxNoAndSkuEnter('boxNo', 'boxNO.')"
-              :disabled="disabledBoxAndSku"
             >
               <template #button>
+                <div style="line-height: 0">
+                  <van-button size="mini" type="warning" @click="clearBoxNoFun"
+                    >Clear</van-button
+                  >
+                </div>
+              </template>
+              <!-- <template #button>
                 <div style="line-height: 0" class="flexBetweenCenter">
                   <van-tag type="warning" style="padding: 4px"
                     >Selected：{{ checkList.length }}</van-tag
@@ -59,7 +65,7 @@
                     />
                   </div>
                 </div>
-              </template>
+              </template> -->
             </van-field>
           </van-cell-group>
         </template>
@@ -331,6 +337,8 @@ export default {
       let flag = true;
       if (this.query.pageFlag === "pallet") {
         flag = Boolean(this.locationNameStart && this.searchList.length > 0);
+      } else if (this.query.pageFlag === "box") {
+        flag = Boolean(this.boxNo && this.searchList.length > 0);
       } else {
         flag = Boolean(
           this.locationNameStart &&
@@ -358,21 +366,33 @@ export default {
     },
     // 箱号回车  存储箱号
     boxNoAndSkuEnter(prop, label) {
-      let isHaveItem = null;
-      isHaveItem = this.searchList.find((item) => item[prop] === this[prop]);
-      if (!isHaveItem) {
+      if (this.query.pageFlag === "box") {
+        // 整箱
+        if (!this.boxNo) {
+          return Toast.fail({
+            message: `BoxNo. is empty`, //查询条件为空
+            position: "top",
+          });
+        }
+        this.getList("focusInputRef3", 1);
+      } else {
+        // 散货
+        let isHaveItem = null;
+        isHaveItem = this.searchList.find((item) => item[prop] === this[prop]);
+        if (!isHaveItem) {
+          this[prop] = "";
+          return Toast.fail({
+            message: `Unable to find ${label}`, //无数据
+            position: "top",
+          });
+        }
+        this.checkList.push(this[prop]);
+        // 去重
+        this.checkList = [...new Set(this.checkList)];
+        //当前箱号或SKU置顶
+        this.moveObjectToTop(this.list, prop);
         this[prop] = "";
-        return Toast.fail({
-          message: `Unable to find ${label}`, //无数据
-          position: "top",
-        });
       }
-      this.checkList.push(this[prop]);
-      // 去重
-      this.checkList = [...new Set(this.checkList)];
-      //当前箱号或SKU置顶
-      this.moveObjectToTop(this.list, prop);
-      this[prop] = "";
     },
     // 置顶
     moveObjectToTop(arr, prop) {
@@ -384,6 +404,12 @@ export default {
     },
     // 移位
     async chiftBtn() {
+      if (!this.locationNameTarget) {
+        return Toast.fail({
+          message: `Target locationName is empty`, //查询条件为空
+          position: "top",
+        });
+      }
       if (this.locationNameTarget === this.locationNameStart) {
         this.locationNameTarget = "";
         return Toast.fail({
@@ -392,11 +418,13 @@ export default {
         });
       }
       let list = [];
-      let type = 1
+      let type = 1;
       if (this.query.pageFlag === "pallet") {
         list = this.searchList;
+      } else if (this.query.pageFlag === "box") {
+        list = this.searchList;
       } else {
-        type =  2
+        type = 2;
         list = this.searchList.filter((item) =>
           this.checkList.includes(item[this.commonData.prop])
         );
@@ -409,8 +437,12 @@ export default {
         message: "Shift success", //上架成功
         position: "top",
       });
-      //   货位合并后 清空数据
-      this.resetDataFun();
+      if (this.query.pageFlag === "box") {
+        this.clearBoxNoFun();
+      } else {
+        //   货位合并后 清空数据
+        this.resetDataFun();
+      }
     },
     // 单个上架
     async ShiftBtn(item) {
@@ -426,7 +458,7 @@ export default {
         locationName: item.locationNameTarget,
       });
       Toast.success({
-        message: "Shift success", //上架成功
+        message: "Putaway success", //上架成功
         position: "top",
       });
       //   货位合并后 清空数据
@@ -456,13 +488,29 @@ export default {
         this.$refs.focusInputRef1 && this.$refs.focusInputRef1.focus();
       });
     },
+    // 清空箱号
+    clearBoxNoFun() {
+      this.list = [];
+      this.boxNo = [];
+      this.locationNameStart = "";
+      this.locationNameTarget = "";
+      this.$nextTick(() => {
+        this.$refs.focusInputRef2 && this.$refs.focusInputRef2.focus();
+      });
+    },
     // 调接口获取数据
-    async getList(inputRef) {
+    async getList(inputRef, type) {
       const data = {
         warehouseId: this.query.warehouseId,
         locationName: this.locationNameStart,
         inStorageStatus: this.commonData.inStorageStatus,
       };
+      // 通过箱号获取最新的货位名
+      if (type) {
+        data.boxNo = this.boxNo;
+        data.type = type;
+        delete data.locationName;
+      }
       this.searchLoading = true;
       this.searchList = [];
       this.checkList = [];
@@ -482,7 +530,12 @@ export default {
       });
       this.searchLoading = false;
       if (res.length > 0) {
-        this.searchList = res;
+        if (type) {
+          this.locationNameStart = res[0].locationName;
+          this.searchList = res;
+        } else {
+          this.searchList = res;
+        }
         if (inputRef) {
           this.$nextTick(() => {
             this.$refs[inputRef] && this.$refs[inputRef].focus();
@@ -498,6 +551,7 @@ export default {
         this.finished = true;
       }
     },
+
     // 加载数据
     onLoad() {
       // 异步更新数据

@@ -37,6 +37,24 @@ const routes = [
     name: "AllShiftPage",
     component: resolve => require(["@/views/translocation/AllShiftPage.vue"], resolve)
   },
+  // FBA发货
+  {
+    path: "/fbaDelivery",
+    name: "fbaDelivery",
+    component: resolve => require(["@/views/outbound/fbaDelivery.vue"], resolve)
+  },
+  // FBA扫描
+  {
+    path: "/scanPickFBA",
+    name: "scanPickFBA",
+    component: resolve => require(["@/views/pickingScanning/scanPickFBA.vue"], resolve)
+  },
+   // FBA-箱号扫描
+   {
+    path: "/scanBoxNo",
+    name: "scanBoxNo",
+    component: resolve => require(["@/views/pickingScanning/scanBoxNo.vue"], resolve)
+  },
 ];
 
 const router = new VueRouter({
