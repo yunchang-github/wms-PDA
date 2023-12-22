@@ -27,6 +27,8 @@
             label="Location"
             placeholder="Click to type location"
             @keydown.enter="getListByEnter('Location')"
+            @focus="stopKeyborad"
+            :readonly="readonly1"
           >
             <template #button>
               <div style="line-height: 0">
@@ -47,6 +49,8 @@
             label="SKU"
             placeholder="Click to type SKU"
             @keydown.enter="getListByEnter('SKU')"
+            @focus="stopKeyborad"
+            :readonly="readonly1"
           >
             <template #button>
               <div style="line-height: 0">
@@ -67,6 +71,8 @@
             label="boxNO."
             placeholder="Click to type boxNO."
             @keydown.enter="getListByEnter('boxNO.')"
+            @focus="stopKeyborad"
+            :readonly="readonly1"
           >
             <template #button>
               <div style="line-height: 0">
@@ -269,6 +275,8 @@ export default {
     let that = this;
     return {
       query: that.$route.query,
+      readonly1: false,
+      autoFocus: false,
       vanTabsValue: "All",
       locationName: "",
       sku: "",
@@ -283,6 +291,15 @@ export default {
     };
   },
   methods: {
+    stopKeyborad() {
+      if (this.autoFocus) {
+        this.readonly1 = true;
+        setTimeout(() => {
+          this.readonly1 = false;
+        }, 200);
+        this.autoFocus = false;
+      }
+    },
     async checkBtn(item) {
       if (!item.adjustQuantity && item.adjustQuantity !== 0)
         return Toast.fail({
@@ -305,12 +322,14 @@ export default {
         this.list = [];
       }
       this.boxNo = "";
+      this.autoFocus = true;
       this.$refs["focusInputRef1"].focus();
     },
     // 重置
     resetDataFun(prop, serachInputRef) {
       this[prop] = "";
       this.list = [];
+      this.autoFocus = true;
       this.$refs[serachInputRef].focus();
     },
     // 调接口获取数据
@@ -404,6 +423,7 @@ export default {
     },
   },
   mounted() {
+    this.autoFocus = true;
     this.$refs["focusInputRef1"].focus();
     // this.locationName = "temp";
     // this.getList();
@@ -440,6 +460,7 @@ export default {
     }
     .vanListContainer {
       overflow-y: scroll;
+      scroll-behavior: smooth; /* 平滑滚动效果 */
       .vanLoadingContainer {
         height: 100%;
         position: relative;

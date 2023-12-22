@@ -5,7 +5,9 @@
       :show="$store.state.apiLoading"
       style="display: flex; justify-content: center; align-items: center"
     >
-      <van-loading color="#0094ff" vertical> {{$store.state.apiLoadMsg}} </van-loading>
+      <van-loading color="#0094ff" vertical>
+        {{ $store.state.apiLoadMsg }}
+      </van-loading>
     </van-overlay>
   </div>
 </template>

@@ -24,6 +24,8 @@
             label-width="100px"
             placeholder="Click to type Picking Number"
             @keydown.enter="pickingListNumberEnter"
+            @focus="stopKeyborad"
+            :readonly="readonly1"
           >
           </van-field>
         </van-cell-group>
@@ -102,6 +104,8 @@ export default {
     return {
       query: that.$route.query,
       listContainerHeight: 0,
+      readonly1: false,
+      autoFocus: false,
       pickingListNumber: "",
       loading: false,
       pTableData: [],
@@ -117,9 +121,18 @@ export default {
     this.getMainTable();
   },
   methods: {
+    stopKeyborad() {
+      if (this.autoFocus) {
+        this.readonly1 = true;
+        setTimeout(() => {
+          this.readonly1 = false;
+        }, 200);
+        this.autoFocus = false;
+      }
+    },
     pPickingListNumberClick(row) {
       this.pickingListNumber = row.pickingListNumber;
-      this.pickingListNumberEnter()
+      this.pickingListNumberEnter();
     },
     pickingListNumberEnter() {
       this.$router.push({
@@ -153,6 +166,7 @@ export default {
     },
   },
   mounted() {
+    this.autoFocus = true;
     this.$nextTick(() => {
       this.$refs.focusInputRef1 && this.$refs.focusInputRef1.focus();
       // 获取list高度 pageContainer - vanCeliContainer getBoundingClientRect
@@ -209,6 +223,7 @@ export default {
       .scrollbarClass {
         flex: 1;
         overflow-y: scroll;
+        scroll-behavior: smooth; /* 平滑滚动效果 */
       }
       .tableClass {
         border: 1px solid #e6ebf5;

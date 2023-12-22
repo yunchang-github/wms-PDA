@@ -627,6 +627,7 @@ export default {
     }
     .vanListContainer {
       overflow-y: scroll;
+      scroll-behavior: smooth; /* 平滑滚动效果 */
       .vanLoadingContainer {
         height: 100%;
         position: relative;

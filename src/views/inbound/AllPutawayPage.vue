@@ -44,6 +44,8 @@
               label-width="100px"
               placeholder="Click to type pallet NO."
               @keydown.enter="palletEnter"
+              @focus="stopKeyborad"
+              :readonly="readonly1"
             >
             </van-field>
           </van-cell-group>
@@ -58,6 +60,8 @@
               label-width="100px"
               placeholder="Click to type boxNO."
               @keydown.enter="boxNoAndSkuEnter('boxNo', 'boxNO.')"
+              @focus="stopKeyborad"
+              :readonly="readonly1"
             >
               <template #button>
                 <div style="line-height: 0" class="flexBetweenCenter">
@@ -86,6 +90,8 @@
               label-width="100px"
               placeholder="Click to type SKU"
               @keydown.enter="boxNoAndSkuEnter('sku', 'SKU')"
+              @focus="stopKeyborad"
+              :readonly="readonly1"
             >
               <template #button>
                 <div style="line-height: 0" class="flexBetweenCenter">
@@ -116,6 +122,8 @@
             "
             @keydown.enter="chiftBtn"
             :disabled="disabledTarget"
+            @focus="stopKeyborad"
+            :readonly="readonly1"
           >
           </van-field>
         </van-cell-group>
@@ -238,6 +246,8 @@
                         box-sizing: border-box;
                       "
                       @keydown.enter="PutawayBtn(item)"
+                      @focus="stopKeyborad"
+                      :readonly="readonly1"
                     />
                   </van-col>
                   <template v-if="item.inStorageStatus === 1">
@@ -311,6 +321,8 @@ export default {
     return {
       commonData: PageData[that.$route.query.pageFlag],
       query: that.$route.query,
+      readonly1: false,
+      autoFocus: false,
       locationNameStart: "temp",
       locationNameTarget: "",
       palletNumber: "", //PHY16
@@ -346,8 +358,18 @@ export default {
     },
   },
   methods: {
+    stopKeyborad() {
+      if (this.autoFocus) {
+        this.readonly1 = true;
+        setTimeout(() => {
+          this.readonly1 = false;
+        }, 200);
+        this.autoFocus = false;
+      }
+    },
     // 箱号回车  存储箱号
     boxNoAndSkuEnter(prop, label) {
+      document.activeElement.blur();
       let isHaveItem = null;
       isHaveItem = this.searchList.find((item) => item[prop] === this[prop]);
       if (!isHaveItem) {
@@ -361,19 +383,25 @@ export default {
       // 去重
       this.checkList = [...new Set(this.checkList)];
       //当前箱号或SKU置顶
-      this.moveObjectToTop(this.list, prop);
+      this.moveObjectToTop(this.searchList, this.list, prop);
       this[prop] = "";
     },
     // 置顶
-    moveObjectToTop(arr, prop) {
-      const index = arr.findIndex((obj) => obj[prop] === this[prop]); // 找到该对象的索引
+    moveObjectToTop(searchList, list, prop) {
+      const index = searchList.findIndex((obj) => obj[prop] === this[prop]); // 找到该对象的索引
+      const LIndex = list.findIndex((obj) => obj[prop] === this[prop]); // 找到该对象的索引
       if (index !== -1) {
-        const obj = arr.splice(index, 1)[0]; // 将该对象从数组中删除，并保存到变量中
-        arr.unshift(obj); // 将该对象添加到数组的开头
+        // 在searchList找到相同的箱号
+        const obj = searchList[index];
+        if (LIndex !== -1) {
+          list.splice(LIndex, 1); // 将该对象从数组中删除
+        }
+        list.unshift(obj); // 将该对象添加到数组的开头
       }
     },
     // 托盘回车
     palletEnter() {
+      document.activeElement.blur();
       if (!this.palletNumber) {
         return Toast.fail({
           message: `Pallet NO. is empty`, //查询条件为空
@@ -384,6 +412,7 @@ export default {
     },
     // 上架
     async chiftBtn() {
+      document.activeElement.blur();
       if (this.locationNameTarget === this.locationNameStart) {
         this.locationNameTarget = "";
         return Toast.fail({
@@ -392,11 +421,11 @@ export default {
         });
       }
       let list = [];
-      let type = 4
+      let type = 4;
       if (this.query.pageFlag === "pallet") {
         list = this.searchList;
       } else {
-        type = 3
+        type = 3;
         list = this.searchList.filter((item) =>
           this.checkList.includes(item[this.commonData.prop])
         );
@@ -414,6 +443,7 @@ export default {
     },
     // 单个上架
     async PutawayBtn(item) {
+      document.activeElement.blur();
       if (item.locationNameTarget === item.locationName) {
         item.locationNameTarget = "";
         return Toast.fail({
@@ -439,6 +469,7 @@ export default {
         this.list = [];
         this.palletNumber = "";
         this.locationNameTarget = "";
+        this.autoFocus = true;
         this.$nextTick(() => {
           this.$refs.focusInputRef2 && this.$refs.focusInputRef2.focus();
         });
@@ -476,6 +507,7 @@ export default {
       if (res.length > 0) {
         this.searchList = res;
         if (inputRef) {
+          this.autoFocus = true;
           this.$nextTick(() => {
             this.$refs[inputRef] && this.$refs[inputRef].focus();
           });
@@ -494,7 +526,7 @@ export default {
     onLoad() {
       // 异步更新数据
       setTimeout(() => {
-        let pageSize = this.searchList.length; //先全部加载  之后10列一加载  需要考虑置顶效果
+        let pageSize = 10; //先全部加载  之后10列一加载  需要考虑置顶效果
         let size =
           this.searchList.length >= pageSize
             ? pageSize
@@ -521,6 +553,11 @@ export default {
   mounted() {
     if (this.query.pageFlag !== "pallet") {
       this.getList("focusInputRef2");
+    } else {
+      this.autoFocus = true;
+      this.$nextTick(() => {
+        this.$refs.focusInputRef2 && this.$refs.focusInputRef2.focus();
+      });
     }
     // 获取list高度 pageContainer - vanCeliContainer getBoundingClientRect
     let pageContainerHeight = document
@@ -561,6 +598,7 @@ export default {
     }
     .vanListContainer {
       overflow-y: scroll;
+      scroll-behavior: smooth; /* 平滑滚动效果 */
       .vanLoadingContainer {
         height: 100%;
         position: relative;

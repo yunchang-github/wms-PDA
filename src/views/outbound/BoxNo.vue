@@ -734,6 +734,7 @@ export default {
   }
   .table-body {
     overflow-y: scroll;
+    scroll-behavior: smooth; /* 平滑滚动效果 */
   }
   .yctbody,
   .fixedStyle {
@@ -781,6 +782,7 @@ export default {
     .tableContainer {
       height: 65%;
       overflow-y: scroll;
+      scroll-behavior: smooth; /* 平滑滚动效果 */
     }
     .bottomBtn {
       position: absolute;

@@ -1,5 +1,5 @@
 <template>
-  <div id="scanPickFBA">
+  <div id="scanBoxNo">
     <van-nav-bar title="BoxNO. scanning">
       <template #left>
         <svg class="icon navBarIcon" aria-hidden="true" @click.stop="goBack">
@@ -27,14 +27,7 @@
               :style="{ lineHeight: scanCountSum > 0 ? '0px' : '' }"
             >
               <div>
-                <span
-                  style="
-                    display: inline-block;
-                    width: 100px;
-                    margin-right: 12px;
-                  "
-                  >Picking Number</span
-                >
+                <span style="margin-right: 12px">Picking Number</span>
                 <span>
                   {{ query.pickingListNumber }}
                 </span>
@@ -61,6 +54,8 @@
             label-width="100px"
             placeholder="Click to type BoxNO."
             @keydown.enter="boxNoEnter"
+            @focus="stopKeyborad"
+            :readonly="readonly1"
           >
           </van-field>
         </van-cell-group>
@@ -111,7 +106,6 @@
               </table>
             </div>
           </div>
-
           <div class="scrollbarClass">
             <div class="tableClass" style="border-top: none">
               <table rules="cols" style="width: 100%">
@@ -178,6 +172,8 @@ export default {
     return {
       query: that.$route.query,
       listContainerHeight: 0,
+      readonly1: false,
+      autoFocus: false,
       boxNo: "",
       boxNoSuccess: "",
       boxNameSuccess: "",
@@ -215,6 +211,15 @@ export default {
     this.getMainTable();
   },
   methods: {
+    stopKeyborad() {
+      if (this.autoFocus) {
+        this.readonly1 = true;
+        setTimeout(() => {
+          this.readonly1 = false;
+        }, 200);
+        this.autoFocus = false;
+      }
+    },
     // 完成拣货
     async completePickingBtn() {
       try {
@@ -298,6 +303,7 @@ export default {
     },
   },
   mounted() {
+    this.autoFocus = true;
     this.$nextTick(() => {
       this.$refs.focusInputRef1 && this.$refs.focusInputRef1.focus();
       // 获取list高度 pageContainer - vanCeliContainer getBoundingClientRect
@@ -314,7 +320,7 @@ export default {
 </script>
   
   <style lang="scss" scoped>
-#scanPickFBA {
+#scanBoxNo {
   height: 100vh;
   width: 100vw;
   display: flex;
@@ -334,6 +340,7 @@ export default {
     margin-left: 4px;
   }
   .pageContainer {
+    overflow: hidden;
     flex: 1;
     .vanCeliContainer {
       border-bottom: 10px solid #f7f9fd;
@@ -363,7 +370,9 @@ export default {
       }
       .scrollbarClass {
         flex: 1;
+        height: 100%;
         overflow-y: scroll;
+        scroll-behavior: smooth; /* 平滑滚动效果 */
       }
       .tableClass {
         border: 1px solid #e6ebf5;
@@ -376,7 +385,7 @@ export default {
         thead {
           th {
             font-size: 13px;
-            padding: 6px 8px;
+            padding: 6px;
             text-align: center;
             border: 1px solid #e6ebf5; /* 设置边框 */
             word-wrap: break-word;
@@ -387,7 +396,7 @@ export default {
             background-color: #e1f5d5;
           }
           td {
-            padding: 6px 8px;
+            padding: 6px;
             text-align: center;
             font-size: 12px;
             border: 1px solid #e6ebf5; /* 设置边框 */

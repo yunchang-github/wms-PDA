@@ -24,6 +24,8 @@
             label-width="100px"
             placeholder="Click to type location"
             @keydown.enter="locationNameStartEnter"
+            @focus="stopKeyborad"
+            :readonly="readonly1"
           >
             <template #button>
               <div style="line-height: 0">
@@ -45,6 +47,8 @@
               placeholder="Click to type boxNO."
               @keydown.enter="boxNoAndSkuEnter('boxNo', 'boxNO.')"
               :disabled="disabledBoxAndSku"
+              @focus="stopKeyborad"
+              :readonly="readonly1"
             >
               <template #button>
                 <div style="line-height: 0" class="flexBetweenCenter">
@@ -74,6 +78,8 @@
               placeholder="Click to type SKU"
               @keydown.enter="boxNoAndSkuEnter('sku', 'SKU')"
               :disabled="disabledBoxAndSku"
+              @focus="stopKeyborad"
+              :readonly="readonly1"
             >
               <template #button>
                 <div style="line-height: 0" class="flexBetweenCenter">
@@ -104,6 +110,8 @@
             "
             @keydown.enter="chiftBtn"
             :disabled="disabledTarget"
+            @focus="stopKeyborad"
+            :readonly="readonly1"
           >
           </van-field>
         </van-cell-group>
@@ -226,6 +234,8 @@
                         box-sizing: border-box;
                       "
                       @keydown.enter="ShiftBtn(item)"
+                      @focus="stopKeyborad"
+                      :readonly="readonly1"
                     />
                   </van-col>
                   <template v-if="item.inStorageStatus === 1">
@@ -312,6 +322,8 @@ export default {
     return {
       commonData: PageData[that.$route.query.pageFlag],
       query: that.$route.query,
+      readonly1: false,
+      autoFocus: false,
       locationNameStart: "",
       locationNameTarget: "",
       sku: "",
@@ -346,18 +358,31 @@ export default {
     },
   },
   methods: {
+    stopKeyborad() {
+      if (this.autoFocus) {
+        this.readonly1 = true;
+        setTimeout(() => {
+          this.readonly1 = false;
+        }, 200);
+        this.autoFocus = false;
+      }
+    },
     // 起始货位回车
     locationNameStartEnter() {
+      document.activeElement.blur();
       if (!this.locationNameStart) {
         return Toast.fail({
           message: `Start Location is empty`, //查询条件为空
           position: "top",
         });
       }
-      this.getList("focusInputRef2");
+      const inputRef =
+        this.query.pageFlag === "pallet" ? "focusInputRef3" : "focusInputRef2";
+      this.getList(inputRef);
     },
     // 箱号回车  存储箱号
     boxNoAndSkuEnter(prop, label) {
+      document.activeElement.blur();
       let isHaveItem = null;
       isHaveItem = this.searchList.find((item) => item[prop] === this[prop]);
       if (!isHaveItem) {
@@ -371,19 +396,25 @@ export default {
       // 去重
       this.checkList = [...new Set(this.checkList)];
       //当前箱号或SKU置顶
-      this.moveObjectToTop(this.list, prop);
+      this.moveObjectToTop(this.searchList, this.list, prop);
       this[prop] = "";
     },
     // 置顶
-    moveObjectToTop(arr, prop) {
-      const index = arr.findIndex((obj) => obj[prop] === this[prop]); // 找到该对象的索引
+    moveObjectToTop(searchList, list, prop) {
+      const index = searchList.findIndex((obj) => obj[prop] === this[prop]); // 找到该对象的索引
+      const LIndex = list.findIndex((obj) => obj[prop] === this[prop]); // 找到该对象的索引
       if (index !== -1) {
-        const obj = arr.splice(index, 1)[0]; // 将该对象从数组中删除，并保存到变量中
-        arr.unshift(obj); // 将该对象添加到数组的开头
+        // 在searchList找到相同的箱号
+        const obj = searchList[index];
+        if (LIndex !== -1) {
+          list.splice(LIndex, 1); // 将该对象从数组中删除
+        }
+        list.unshift(obj); // 将该对象添加到数组的开头
       }
     },
     // 移位
     async chiftBtn() {
+      document.activeElement.blur();
       if (this.locationNameTarget === this.locationNameStart) {
         this.locationNameTarget = "";
         return Toast.fail({
@@ -392,11 +423,11 @@ export default {
         });
       }
       let list = [];
-      let type = 1
+      let type = 1;
       if (this.query.pageFlag === "pallet") {
         list = this.searchList;
       } else {
-        type =  2
+        type = 2;
         list = this.searchList.filter((item) =>
           this.checkList.includes(item[this.commonData.prop])
         );
@@ -414,6 +445,7 @@ export default {
     },
     // 单个上架
     async ShiftBtn(item) {
+      document.activeElement.blur();
       if (item.locationNameTarget === item.locationName) {
         item.locationNameTarget = "";
         return Toast.fail({
@@ -439,6 +471,7 @@ export default {
         this.list = [];
         this.locationNameStart = "";
         this.locationNameTarget = "";
+        this.autoFocus = true;
         this.$nextTick(() => {
           this.$refs.focusInputRef1 && this.$refs.focusInputRef1.focus();
         });
@@ -452,6 +485,7 @@ export default {
       this.searchList = [];
       this.list = [];
       this.locationNameStart = "";
+      this.autoFocus = true;
       this.$nextTick(() => {
         this.$refs.focusInputRef1 && this.$refs.focusInputRef1.focus();
       });
@@ -484,6 +518,7 @@ export default {
       if (res.length > 0) {
         this.searchList = res;
         if (inputRef) {
+          this.autoFocus = true;
           this.$nextTick(() => {
             this.$refs[inputRef] && this.$refs[inputRef].focus();
           });
@@ -502,7 +537,7 @@ export default {
     onLoad() {
       // 异步更新数据
       setTimeout(() => {
-        let pageSize = this.searchList.length; //先全部加载  之后10列一加载  需要考虑置顶效果
+        let pageSize = 10; //先全部加载  之后10列一加载  需要考虑置顶效果
         let size =
           this.searchList.length >= pageSize
             ? pageSize
@@ -527,6 +562,7 @@ export default {
     },
   },
   mounted() {
+    this.autoFocus = true;
     this.$nextTick(() => {
       this.$refs.focusInputRef1 && this.$refs.focusInputRef1.focus();
     });
@@ -573,6 +609,7 @@ export default {
     }
     .vanListContainer {
       overflow-y: scroll;
+      scroll-behavior: smooth; /* 平滑滚动效果 */
       .vanLoadingContainer {
         height: 100%;
         position: relative;
