@@ -1,5 +1,13 @@
 <template>
   <div id="homePage">
+    <div>
+      <van-nav-bar
+        left-text="退出登录"
+        right-text="刷新页面"
+        @click-left="LogOut"
+        @click-right="refleshPage"
+      />
+    </div>
     <div class="homeContainter">
       <!-- 仓库选择 -->
       <div style="margin-bottom: 20px">
@@ -62,7 +70,8 @@ import {
   selWarehouseOperateLog,
   saveWarehouseOperateLog,
 } from "@/api/overseasWarehouse/warehouseInfoManager";
-import { Toast } from "vant";
+import { Toast, Dialog } from "vant";
+import Cookies from "js-cookie";
 export default {
   data() {
     return {
@@ -98,7 +107,7 @@ export default {
               labelZn: "按件上架",
               pageName: "AllPutawayPage",
               query: {
-                pageFlag: "sku",
+                pageFlag: "msku",
               },
             },
           ],
@@ -140,7 +149,7 @@ export default {
               labelZn: "散货移位",
               pageName: "AllShiftPage",
               query: {
-                pageFlag: "sku",
+                pageFlag: "msku",
               },
             },
           ],
@@ -257,6 +266,26 @@ export default {
         this.defaultIndex = 0;
       }
     },
+    // 退出登录
+    LogOut() {
+      let that = this;
+      Dialog.confirm({
+        title: "提示",
+        message: "确定注销并退出系统吗？",
+      })
+        .then(() => {
+          Cookies.remove("wms-admin-Token");
+          Cookies.remove("wms-admin-Expires-In");
+          that.$router.push("/");
+        })
+        .catch((e) => {
+          console.log(e);
+        });
+    },
+    // 刷新页面
+    refleshPage() {
+      location.reload();
+    },
   },
   mounted() {},
 };
@@ -266,7 +295,7 @@ export default {
 #homePage {
   height: 100vh;
   width: 100vw;
-  background-color: #e5e5e5;
+  background-color: #f1f1f1;
   font-size: 16px;
   .homeContainter {
     padding: 20px;

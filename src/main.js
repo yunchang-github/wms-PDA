@@ -13,6 +13,9 @@ import './assets/icons/iconfont.js'
 import "./assets/public.css";
 import Vant from "vant";
 import "vant/lib/index.css";
+/**引入全局变量和方法*/
+import globalFunction from './utils/global_function'
+Vue.prototype.$globalFun = globalFunction;
 
 Vue.use(Vant);
 

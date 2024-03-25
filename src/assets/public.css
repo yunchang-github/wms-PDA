@@ -13,8 +13,54 @@
     transform: scale(1.2)
 }
 
+.flexBetween {
+    display: flex;
+    justify-content: space-between;
+}
+
 .flexBetweenCenter {
     display: flex;
     justify-content: space-between;
     align-items: center;
-  }
+}
+
+.flexCenterCenter {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.flexStartCenter {
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+}
+
+.flexStart {
+    display: flex;
+    justify-content: flex-start;
+}
+
+.flexEndCenter {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+}
+
+.fsize14fweight700 {
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.fsize12fweight400 {
+    font-size: 12px;
+    font-weight: 400;
+}
+
+.ml10 {
+    margin-left: 10px;
+}
+
+.mr10 {
+    margin-right: 10px;
+}

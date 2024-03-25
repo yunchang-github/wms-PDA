@@ -45,7 +45,7 @@
         <van-cell-group>
           <van-field
             ref="focusInputRef2"
-            v-model="sku"
+            v-model="msku"
             label="SKU"
             placeholder="Click to type SKU"
             @keydown.enter="getListByEnter('SKU')"
@@ -57,7 +57,7 @@
                 <van-button
                   size="mini"
                   type="warning"
-                  @click="resetDataFun('sku', 'focusInputRef2')"
+                  @click="resetDataFun('msku', 'focusInputRef2')"
                   >Clear</van-button
                 >
               </div>
@@ -111,36 +111,67 @@
                 :key="item.index"
               >
                 <div class="vanCell_Div">
-                  <div style="display: flex; margin-bottom: 6px">
+                  <template v-if="item.inStorageStatus === 1">
+                    <!-- 整箱 -->
                     <div
-                      style="
-                        width: 2.2rem;
-                        margin-right: 6px;
-                        line-height: 0;
-                        border: 1px solid #eee;
-                      "
+                      class="textIconContainer textIconContainerBox flexBetweenCenter"
                     >
-                      <van-image
-                        width="2.2rem"
-                        height="2.2rem"
-                        fit="contain"
-                        @click="imagePreview(item.imageUrl)"
-                        :src="item.imageUrl"
+                      <span class="fsize14fweight700" style="color: #464242"
+                        >BoxNo：{{ item.boxNo }}</span
                       >
-                        <template v-slot:error>加载失败</template>
-                      </van-image>
+                      <span class="textIconClass">BOX</span>
                     </div>
-                    <div>
-                      <template v-if="item.inStorageStatus === 1">
-                        <!-- 整箱 -->
-                        <div class="textIconContainer">
-                          <span class="textIconClass">BOX</span>
-                          <span>BoxNo：{{ item.boxNo }}</span>
-                        </div>
-                        SKU：{{ item.sku }}<br />
-                        {{ item.skuName }}
-                      </template>
-                      <template v-else>
+                    <div
+                      style="display: flex; margin-bottom: 6px"
+                      v-for="(skuItem, skuI) in item.child"
+                      :key="skuI"
+                    >
+                      <div
+                        style="
+                          width: 1.6rem;
+                          margin-right: 6px;
+                          line-height: 0;
+                          border: 1px solid #eee;
+                        "
+                      >
+                        <van-image
+                          width="1.6rem"
+                          height="1.6rem"
+                          fit="contain"
+                          @click="imagePreview(skuItem.imageUrl)"
+                          :src="skuItem.imageUrl"
+                        >
+                          <template v-slot:error>加载失败</template>
+                        </van-image>
+                      </div>
+                      <div>
+                        SKU：{{ skuItem.msku }} * {{ skuItem.boxQuantity
+                        }}<br />
+                        {{ skuItem.mskuName }}
+                      </div>
+                    </div>
+                  </template>
+                  <template v-else>
+                    <div style="display: flex; margin-bottom: 6px">
+                      <div
+                        style="
+                          width: 2.2rem;
+                          margin-right: 6px;
+                          line-height: 0;
+                          border: 1px solid #eee;
+                        "
+                      >
+                        <van-image
+                          width="2.2rem"
+                          height="2.2rem"
+                          fit="contain"
+                          @click="imagePreview(item.imageUrl)"
+                          :src="item.imageUrl"
+                        >
+                          <template v-slot:error>加载失败</template>
+                        </van-image>
+                      </div>
+                      <div>
                         <!-- 散货 -->
                         <div class="textIconContainer">
                           <span
@@ -148,12 +179,12 @@
                             style="background-color: #545c64"
                             >PCS</span
                           >
-                          <span>SKU：{{ item.sku }} </span>
+                          <span>SKU：{{ item.msku }} </span>
                         </div>
-                        {{ item.skuName }}
-                      </template>
+                        {{ item.mskuName }}
+                      </div>
                     </div>
-                  </div>
+                  </template>
                   <van-row class="vanRow">
                     <van-col span="10" style="border-right: 1px solid #ccc"
                       ><div>
@@ -279,7 +310,7 @@ export default {
       autoFocus: false,
       vanTabsValue: "All",
       locationName: "",
-      sku: "",
+      msku: "",
       boxNo: "",
       listContainerHeight: 0,
       list: [],
@@ -306,7 +337,11 @@ export default {
           message: "The Quantity is empty", //数量为空
           position: "top",
         });
-      await inventoryCheck([item], { type: 2 });
+      let list = [];
+      item.child.forEach((childItem) => {
+        list.push({ ...item, ...childItem });
+      });
+      await inventoryCheck(list, { type: 2 });
       Toast.success({
         message: "Inventory success", //数量为空
         position: "top",
@@ -315,8 +350,8 @@ export default {
     },
     onClick() {
       //   this.locationName = "";
-      //   this.sku = "";
-      if (this.locationName || this.sku) {
+      //   this.msku = "";
+      if (this.locationName || this.msku) {
         this.getList();
       } else {
         this.list = [];
@@ -337,7 +372,7 @@ export default {
       const data = {
         warehouseId: this.query.warehouseId,
         locationName: this.locationName,
-        sku: this.sku,
+        msku: this.msku,
         boxNo: this.boxNo,
         inStorageStatus:
           this.vanTabsValue === "All"
@@ -350,7 +385,24 @@ export default {
       this.searchList = [];
       this.list = [];
       const { data: res } = await selPageList(data);
-      res.forEach((item, i) => {
+      res.forEach((item) => {
+        if (item.inStorageStatus === 1) {
+          // 整箱
+          item.tempBoxNo = item.boxNo;
+        } else {
+          // 散货
+          item.tempBoxNo = item.msku + item.mskuId;
+        }
+      });
+
+      let listRemoveByBoxNo = this.$globalFun.removeDupAndSumByKey(
+        res,
+        "tempBoxNo",
+        ["boxQuantity"],
+        ["imageUrl", "msku", "mskuId", "mskuName", "newMskuId", "boxQuantity"]
+      );
+      // 给散货取一个临时的boxNo
+      listRemoveByBoxNo.forEach((item, i) => {
         item.index = i;
         if (item.inStorageStatus === 1) {
           // 整箱
@@ -360,28 +412,26 @@ export default {
           item.adjustQuantity = item.totalQuantity;
         }
       });
-      setTimeout(() => {
-        this.searchList = res;
-        this.searchLoading = false;
-        if (this.searchList.length > 0) {
-          // 清空列表数据
-          this.finished = false;
-          // 重新加载数据
-          // 将 loading 设置为 true，表示处于加载状态
-          this.loading = true;
-          this.onLoad();
-        } else {
-          this.list = [];
-          this.finished = true;
-        }
-      }, 100);
+      this.searchLoading = false;
+      if (listRemoveByBoxNo.length > 0) {
+        this.searchList = listRemoveByBoxNo;
+        // 清空列表数据
+        this.finished = false;
+        // 重新加载数据
+        // 将 loading 设置为 true，表示处于加载状态
+        this.loading = true;
+        this.onLoad();
+      } else {
+        this.list = [];
+        this.finished = true;
+      }
     },
     // 回车查询
     getListByEnter(label) {
       let flag =
         this.vanTabsValue === "PCS"
-          ? !this.locationName && !this.sku
-          : !this.locationName && !this.sku && !this.boxNo;
+          ? !this.locationName && !this.msku
+          : !this.locationName && !this.msku && !this.boxNo;
       if (flag) {
         return Toast.fail({
           message: `The ${label} is empty`, //查询条件为空
@@ -394,22 +444,18 @@ export default {
     onLoad() {
       // 异步更新数据
       setTimeout(() => {
-        if (this.refreshing) {
-          this.list = [];
-          this.refreshing = false;
-        }
-        let pageSize = 10; //10列一加载
-        let size =
-          this.searchList.length >= pageSize
-            ? pageSize
-            : this.searchList.length;
-        for (let i = 0; i < size; i++) {
+        let allLength = this.searchList.length;
+        let currentLength = this.list.length;
+        let pageSize = 10 + currentLength; //先全部加载  之后10列一加载  需要考虑置顶效果
+        let size = allLength >= pageSize ? pageSize : allLength;
+        let I = currentLength === 0 ? 0 : currentLength;
+        for (let i = I; i < size; i++) {
           this.list.push(this.searchList[i]);
         }
         // 加载状态结束
         this.loading = false;
         // 数据全部加载完成
-        if (this.list.length >= this.searchList.length) {
+        if (currentLength >= allLength) {
           this.finished = true;
         }
       }, 300);
@@ -485,13 +531,17 @@ export default {
           margin-bottom: 4px;
           .textIconClass {
             font-size: 11px;
-            line-height: 24px;
+            line-height: 12px;
             background-color: #13227a;
             color: #fff;
             border-radius: 50%;
             padding: 4px;
             margin-right: 4px;
           }
+        }
+        .textIconContainerBox {
+          padding-bottom: 4px;
+          border-bottom: 1px solid #eee;
         }
         .vanRow {
           text-align: center;

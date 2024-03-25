@@ -56,7 +56,7 @@ service.interceptors.request.use(
     // 是否需要设置 token
     const isToken = (config.headers || {}).isToken === false;
     if (getToken() && !isToken) {
-      config.headers["Authorization"] = getToken(); // 让每个请求携带自定义token 请根据实际情况自行修改
+      config.headers["Authorization"] = "bearer " + getToken(); // 让每个请求携带自定义token 请根据实际情况自行修改
     }
     // 是否需要防止数据重复提交
     const isRepeatSubmit = (config.headers || {}).repeatSubmit === false;
@@ -294,7 +294,7 @@ function handleAuthorized() {
     });
     isRelogin.show = false;
     let timer = setTimeout(() => {
-      location.href = process.env.NODE_ENV === 'production' ? "/phone/wms/" : "/";
+      location.href = process.env.NODE_ENV === 'production' ? "/pdaWms/" : "/";
       clearTimeout(timer)
     }, 1000)
 
