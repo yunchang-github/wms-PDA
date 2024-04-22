@@ -139,6 +139,7 @@ export default {
           warehouseId: this.query.warehouseId,
           warehouseName: this.query.warehouseName,
           pickingListNumber: row.pickingListNumber,
+          companyId:row.companyId,
           id: row.id,
         },
       });
@@ -162,6 +163,7 @@ export default {
               warehouseId: this.query.warehouseId,
               warehouseName: this.query.warehouseName,
               pickingListNumber: currentItem.pickingListNumber,
+              companyId:currentItem.companyId,
               id: currentItem.id,
             },
           });

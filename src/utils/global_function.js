@@ -1,3 +1,5 @@
+import { Toast } from "vant";
+
 //浮点数精度丢失   小数位过多也有可能不准确 对值进行四舍五入
 // js 精度处理
 function accAdd(arg1, arg2, length = 2) {//加法
@@ -31,6 +33,37 @@ function accDiv(arg1, arg2, length = null) {
     m = (r2.split(".")[1] ? r2.split(".")[1].length : 0) - (r1.split(".")[1] ? r1.split(".")[1].length : 0);
     resultVal = Number(r1.replace(".", "")) / Number(r2.replace(".", "")) * Math.pow(10, m);
     return typeof d !== "number" ? Number(resultVal) : Number(resultVal.toFixed(parseInt(d)));
+}
+/**
+ * @param { 复制的内容 } str 
+ */
+function ycCopyText(str) {
+    if (navigator.clipboard) {
+        navigator.clipboard.writeText(str)
+        return Toast.success({
+            message: "Copy success",
+            position: "top",
+        });
+    }
+    let targetId = "_hiddenCopyText_";
+    let target = document.getElementById(targetId);
+    if (!target) {
+        target = document.createElement("textarea");
+        target.style.position = "absolute";
+        target.style.left = "-9999px";
+        target.style.top = "0";
+        target.id = targetId;
+        // target.type = "text";
+        document.body.appendChild(target);
+    }
+    target.value = str;
+    target.select();
+    document.execCommand("copy");
+    Toast.success({
+        message: "Copy success",
+        position: "top",
+    });
+    document.body.removeChild(target);
 }
 
 // 跟据某个字段去重 累加某数值
@@ -77,5 +110,6 @@ export default {
     Subtr,//减
     accMul,//乘
     accDiv,//除
+    ycCopyText,// 复制内容到剪贴板
     removeDupAndSumByKey
 }

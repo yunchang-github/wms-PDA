@@ -24,7 +24,6 @@
                 align-items: center;
                 line-height: 0px;
               "
-              :style="{ lineHeight: scanCountSum > 0 ? '0px' : '' }"
             >
               <div>
                 <span style="margin-right: 12px">Picking Number</span>
@@ -33,14 +32,12 @@
                 </span>
               </div>
               <div>
-                <template v-if="scanCountSum > 0">
-                  <van-button
-                    size="mini"
-                    type="primary"
-                    @click="completePickingBtn"
-                    >Complete picking</van-button
-                  >
-                </template>
+                <van-button
+                  size="mini"
+                  type="primary"
+                  @click="completePickingBtn"
+                  >Complete picking</van-button
+                >
               </div>
             </div>
           </van-cell>
@@ -79,16 +76,33 @@
               {{ boxNameSuccess || "Not scanned yet" }} <br />
               <span class="labelClass">箱号：</span
               >{{ boxNoSuccess || "Not scanned yet" }} <br />
-              <span style="margin-right: 20px">
-                <span class="labelClass">已扫描数量：</span
-                ><span class="labelClass" style="color: #52c41a">{{
-                  scanCountSum
-                }}</span>
-              </span>
-              <span class="labelClass">剩余未扫描数量：</span>
-              <span class="labelClass" style="color: #333333">{{
-                boxCountSum - scanCountSum
-              }}</span>
+              <div
+                style="
+                  display: flex;
+                  justify-content: space-between;
+                  align-items: center;
+                "
+              >
+                <span style="margin-right: 20px">
+                  <span style="margin-right: 20px">
+                    <span class="labelClass">已扫描数：</span
+                    ><span class="labelClass" style="color: #52c41a">{{
+                      scanCountSum
+                    }}</span>
+                  </span>
+                  <span class="labelClass">未扫描数：</span>
+                  <span class="labelClass" style="color: #333333">{{
+                    boxCountSum - scanCountSum
+                  }}</span>
+                </span>
+                <van-button
+                  v-if="boxCountSum - scanCountSum > 0"
+                  size="mini"
+                  type="info"
+                  @click="replaceableBoxNoBtn"
+                  >未扫描箱号可替换明细</van-button
+                >
+              </div>
             </div>
             <div class="tableClass">
               <table rules="cols" style="width: 100%">
@@ -156,6 +170,52 @@
         </div>
       </template>
     </van-dialog> -->
+    <!-- 未扫描箱号可替换明细 -->
+    <van-popup v-model="replaceableBoxNoVisible" class="replaceableBoxNoPopup">
+      <div class="popupTitleClass">可替换箱号明细列表</div>
+      <div class="popupContentClass">
+        <template v-if="replaceableBoxNoLoading">
+          <div class="loadingContainer">
+            <van-loading color="#0094ff" vertical> Loading </van-loading>
+          </div>
+        </template>
+        <template v-else>
+          <template v-if="replaceableTableData.length">
+            <div v-for="(firstItem, fI) in replaceableTableData" :key="fI">
+              <div class="firstLevel">
+                未扫描箱名：{{ firstItem.boxName }} ({{
+                  firstItem.locationName
+                }})
+              </div>
+              <template v-if="firstItem.accordList.length">
+                <div
+                  v-for="(secendItem, sI) in firstItem.accordList"
+                  :key="fI + '-' + sI"
+                >
+                  <div class="secondLevel">
+                    可替换箱号：<span
+                      @click.stop="$globalFun.ycCopyText(secendItem.boxNo)"
+                      >{{ secendItem.boxNo }}</span
+                    >
+                    <br />
+                    所在货位：{{ secendItem.locationName }}
+                  </div>
+                </div>
+              </template>
+              <template v-else>
+                <div class="secondLevel">无可替换箱号</div>
+              </template>
+            </div>
+          </template>
+          <template v-else> 未扫描箱号库存有问题 请联系管理员 </template>
+        </template>
+      </div>
+      <div class="popupFootClass">
+        <van-button size="small" type="default" @click="replaceableCancel"
+          >关闭</van-button
+        >
+      </div>
+    </van-popup>
   </div>
 </template>
   
@@ -166,6 +226,7 @@ import {
   pdaScanBox,
   pdaFbaCompletePick,
   FBACompletePick,
+  boxInventoryList,
 } from "@/api/overseasWarehouse/pickingListOrder";
 import { Toast, Dialog } from "vant";
 export default {
@@ -184,10 +245,15 @@ export default {
       boxCountSum: 0,
       pTableData: [],
       searchTableColumns: [
+        // {
+        //   label: "序号",
+        //   prop: "index",
+        //   width: "12%",
+        // },
         {
-          label: "序号",
-          prop: "index",
-          width: "12%",
+          label: "箱名",
+          prop: "boxName",
+          width: "44%",
         },
         {
           label: "库位",
@@ -195,31 +261,31 @@ export default {
           width: "20%",
         },
         {
-          label: "箱名",
-          prop: "boxName",
-          width: "38%",
-        },
-        {
           label: "已扫描数/总数",
           prop: "scanCount_boxCount",
-          width: "30%",
+          width: "36%",
         },
       ],
+      replaceableBoxNoVisible: false,
+      replaceableBoxNoLoading: false,
+      replaceableTableData: [],
       //   警告弹窗
       //   warnVisible: false,
     };
   },
   computed: {
     showTable() {
+      // 去除 混装数据
       let tableDataRemoveBoxNo = this.$globalFun.removeDupAndSumByKey(
         this.pTableData,
         "boxNameAndBoxNo"
       );
+      // 去重 箱名加库位
       let showTable = this.$globalFun.removeDupAndSumByKey(
         tableDataRemoveBoxNo,
-        "boxName",
+        "boxNameAndLocationName",
         ["scanCount", "boxCount"],
-        ["boxNo"]
+        ["boxNo", "scanStatus", "boxName"]
       );
       let scanCountSum = 0,
         boxCountSum = 0;
@@ -235,6 +301,108 @@ export default {
     },
   },
   methods: {
+    replaceableCancel() {
+      this.replaceableBoxNoVisible = false;
+      this.replaceableTableData = [];
+    },
+    // 可替换箱号明细弹窗
+    async replaceableBoxNoBtn() {
+      let noScanBoxNo = [];
+      this.showTable.forEach((item) => {
+        item.child.forEach((val) => {
+          if (val.scanStatus === 0) {
+            noScanBoxNo.push(val.boxNo);
+          }
+        });
+      });
+      if (noScanBoxNo.length > 0) {
+        this.replaceableBoxNoVisible = true;
+        this.replaceableBoxNoLoading = true;
+        const selBoxInfoQuery = {
+          warehouseIds: this.query.warehouseId,
+          companyId: this.query.companyId,
+          pageType: 1,
+          pageNum: 1,
+          pageSize: 999,
+          isWms: 2,
+        };
+        const { data: res } = await boxInventoryList({
+          ...selBoxInfoQuery,
+          boxNoList: noScanBoxNo.join(","),
+        });
+        let noScanList = res.records.map((item) => {
+          return {
+            boxName: item.boxName,
+            boxNo: item.boxNo,
+            locationName: item.locationName,
+            skuListStr: item.warehouseInventoryBoxDetailVOS
+              .map((val) => {
+                return val.fnsku + "-" + val.totalQuantity;
+              })
+              .sort()
+              .join(","),
+          };
+        });
+        const allRes = await Promise.all(
+          noScanList.map((item) => {
+            return boxInventoryList({
+              ...selBoxInfoQuery,
+              boxName: item.boxName,
+            });
+          })
+        );
+        this.replaceableTableData = [];
+        allRes.forEach(({ data: res }, resI) => {
+          let currentNoScanItem = noScanList[resI];
+          let accordList = res.records
+            .map((item) => {
+              return {
+                remainingQuantity: item.boxCount - item.reserveQuantity, //剩余数
+                boxName: item.boxName,
+                boxNo: item.boxNo,
+                locationName: item.locationName,
+                skuListStr: item.warehouseInventoryBoxDetailVOS
+                  .map((val) => {
+                    return val.fnsku + "-" + val.totalQuantity;
+                  })
+                  .sort()
+                  .join(","),
+              };
+            })
+            // 剩余数大于0  且 不能为当前未扫描的箱号
+            .filter((item) => {
+              return (
+                item.remainingQuantity > 0 &&
+                item.boxNo !== currentNoScanItem.boxNo &&
+                item.skuListStr === currentNoScanItem.skuListStr
+              );
+            });
+          this.replaceableTableData.push({
+            boxNameAndLocationName:
+              currentNoScanItem.boxName + "-" + currentNoScanItem.locationName,
+            boxName: currentNoScanItem.boxName,
+            boxNo: currentNoScanItem.boxNo,
+            locationName: currentNoScanItem.locationName,
+            accordList,
+            sortFlag: accordList.length > 0 ? 1 : 0,
+          });
+        });
+        this.replaceableTableData = this.$globalFun
+          .removeDupAndSumByKey(
+            this.replaceableTableData,
+            "boxNameAndLocationName"
+          )
+          .sort((a, b) => {
+            return b.sortFlag - a.sortFlag;
+          });
+        this.replaceableBoxNoLoading = false;
+      } else {
+        Toast.fail({
+          message: "无未扫描箱号",
+          position: "top",
+        });
+      }
+    },
     stopKeyborad() {
       if (this.autoFocus) {
         this.readonly1 = true;
@@ -252,12 +420,14 @@ export default {
           //   this.warnVisible = true;
           await Dialog.confirm({
             // <van-icon name="warning-o" />
-            title: `Warn`,
+            title: `警告`,
             allowHtml: true,
+            // message:
+            //   "The box has not been fully scanned. <br> Are you sure you have completed picking",
             message:
-              "The box has not been fully scanned. <br> Are you sure you have completed picking",
-            confirmButtonText: "Complete picking",
-            cancelButtonText: "Cancellation",
+              "当前拣货单中的箱号<span style='color:red'> 未全部扫描 </span>， <br>已点击<span style='color:#1678dc'> 未扫描箱号可替换明细 </span>按钮确认？",
+            confirmButtonText: "继续完成拣货",
+            cancelButtonText: "取消当前操作",
           });
           flag = false;
         }
@@ -367,6 +537,7 @@ export default {
       res.forEach((item) => {
         item.idsList = item.ids.split(",");
         item.boxNameAndBoxNo = item.boxName + item.boxNo;
+        item.boxNameAndLocationName = item.boxName + item.locationName;
         item.scanCount = item.scanStatusStr
           .split(",")
           .filter((status) => status === "1").length;
@@ -466,8 +637,8 @@ export default {
         }
         thead {
           th {
-            font-size: 13px;
-            padding: 6px;
+            font-size: 14px;
+            padding: 10px 6px;
             text-align: center;
             border: 1px solid #e6ebf5; /* 设置边框 */
             word-wrap: break-word;
@@ -478,14 +649,57 @@ export default {
             background-color: #e1f5d5;
           }
           td {
-            padding: 6px;
+            padding: 10px 6px;
             text-align: center;
-            font-size: 12px;
+            font-size: 14px;
             border: 1px solid #e6ebf5; /* 设置边框 */
             word-wrap: break-word;
           }
         }
       }
+    }
+  }
+  .replaceableBoxNoPopup {
+    padding: 10px;
+    width: 80vw;
+    height: 80vh;
+    display: flex;
+    flex-direction: column;
+    color: #515a6e;
+    .popupTitleClass {
+      font-size: 20px;
+      line-height: 30px;
+      text-align: center;
+      background-color: #079bef37;
+      margin-bottom: 10px;
+    }
+    .loadingContainer {
+      height: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    .popupContentClass {
+      padding: 10px;
+      flex: 1;
+      overflow-y: scroll;
+      scroll-behavior: smooth; /* 平滑滚动效果 */
+      font-size: 16px;
+      .firstLevel {
+        font-weight: 700;
+        margin-bottom: 5px;
+      }
+      .secondLevel {
+        padding-left: 2ch;
+        padding-bottom: 10px;
+      }
+    }
+    .popupFootClass {
+      padding-top: 10px;
+      border-top: 1px solid #eee;
+      display: flex;
+      justify-content: center;
+      align-items: center;
     }
   }
 }

@@ -7,7 +7,6 @@ export function selPageList(params) {
         url: PORT4 + "/storage/wmsOutboundPickingList/pageList",
         method: "get",
         params,
-        isCancelToken: true
     });
 }
 
@@ -65,5 +64,17 @@ export function pdaFbaCompletePick(params) {
     });
 }
 
+
+
+
+// 主页面列表 箱号维度
+export function boxInventoryList(params) {
+    return request({
+        isWms: true,
+        url: PORT4 + "/storage/wmsStorageInventoryFlow/boxInventoryList",
+        method: "get",
+        params,
+    });
+}
 
 
