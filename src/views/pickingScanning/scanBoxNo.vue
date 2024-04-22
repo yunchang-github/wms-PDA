@@ -110,7 +110,7 @@
             <div class="tableClass" style="border-top: none">
               <table rules="cols" style="width: 100%">
                 <tbody>
-                  <template v-if="pTableData.length === 0 && !loading">
+                  <template v-if="showTable.length === 0 && !loading">
                     <tr :style="{ height: listContainerHeight }">
                       <td :colspan="searchTableColumns.length" align="center">
                         暂无数据
@@ -119,7 +119,7 @@
                   </template>
                   <template v-else>
                     <tr
-                      v-for="(option, index) in pTableData"
+                      v-for="(option, index) in showTable"
                       :key="index"
                       @click="pPickingListNumberClick(option)"
                       :class="{
@@ -161,9 +161,11 @@
   
   <script>
 import {
+  selPageSonList,
   selPdaPickingListInfo,
   pdaScanBox,
   pdaFbaCompletePick,
+  FBACompletePick,
 } from "@/api/overseasWarehouse/pickingListOrder";
 import { Toast, Dialog } from "vant";
 export default {
@@ -185,12 +187,12 @@ export default {
         {
           label: "序号",
           prop: "index",
-          width: "10%",
+          width: "12%",
         },
         {
           label: "库位",
           prop: "locationName",
-          width: "22%",
+          width: "20%",
         },
         {
           label: "箱名",
@@ -207,8 +209,30 @@ export default {
       //   warnVisible: false,
     };
   },
-  created() {
-    this.getMainTable();
+  computed: {
+    showTable() {
+      let tableDataRemoveBoxNo = this.$globalFun.removeDupAndSumByKey(
+        this.pTableData,
+        "boxNameAndBoxNo"
+      );
+      let showTable = this.$globalFun.removeDupAndSumByKey(
+        tableDataRemoveBoxNo,
+        "boxName",
+        ["scanCount", "boxCount"],
+        ["boxNo"]
+      );
+      let scanCountSum = 0,
+        boxCountSum = 0;
+      showTable.forEach((item, index) => {
+        item.index = index + 1;
+        item.scanCount_boxCount = item.scanCount + "/" + item.boxCount;
+        scanCountSum += item.scanCount;
+        boxCountSum += item.boxCount;
+      });
+      this.scanCountSum = scanCountSum;
+      this.boxCountSum = boxCountSum;
+      return showTable;
+    },
   },
   methods: {
     stopKeyborad() {
@@ -237,11 +261,13 @@ export default {
           });
           flag = false;
         }
-        const data = {
-          flag,
-          pickingListNumber: this.query.pickingListNumber,
-        };
-        await pdaFbaCompletePick(data);
+        let list = this.getFbaConfirmData(this.pTableData);
+        await FBACompletePick(list, { flag });
+        // const data = {
+        //   flag,
+        //   pickingListNumber: this.query.pickingListNumber,
+        // };
+        // await pdaFbaCompletePick(data);
         Toast.success({
           message: "Complete picking success", //扫描成功
           position: "top",
@@ -250,6 +276,63 @@ export default {
       } catch (e) {
         console.log(e);
       }
+    },
+    getFbaConfirmData(expandTableData) {
+      let list = [];
+      expandTableData.forEach((item) => {
+        if (item.boxCount > 1) {
+          // 箱数大于1
+          if (item.scanCount === item.boxCount) {
+            for (let i = 0; i < item.boxCount; i++) {
+              list.push({
+                pickingListId: this.query.id,
+                ...item,
+                id: item.idsList[i],
+                boxCount: 1,
+                boxStatus: 1,
+              });
+            }
+          } else {
+            for (let i = 0; i < item.scanCount; i++) {
+              list.push({
+                pickingListId: this.query.id,
+                ...item,
+                id: item.idsList[i],
+                boxCount: 1,
+                boxStatus: 1,
+              });
+            }
+            let lastIdList = item.idsList.slice(item.scanCount - item.boxCount);
+            lastIdList.forEach((id) => {
+              list.push({
+                ...item,
+                pickingListId: this.query.id,
+                id,
+                boxCount: 0,
+                boxStatus: 2,
+              });
+            });
+          }
+        } else {
+          // 箱数小于1
+          if (item.scanCount === item.boxCount) {
+            list.push({
+              pickingListId: this.query.id,
+              ...item,
+              boxCount: 1,
+              boxStatus: 1,
+            });
+          } else {
+            list.push({
+              pickingListId: this.query.id,
+              ...item,
+              boxCount: 0,
+              boxStatus: 2,
+            });
+          }
+        }
+      });
+      return list;
     },
     pPickingListNumberClick(row) {
       this.pickingListNumber = row.pickingListNumber;
@@ -278,19 +361,16 @@ export default {
     async getMainTable() {
       this.loading = true;
       const params = {
-        pickingListNumber: this.query.pickingListNumber,
+        id: this.query.id,
       };
-      const { data: res } = await selPdaPickingListInfo(params);
-      let scanCountSum = 0,
-        boxCountSum = 0;
-      res.forEach((item, index) => {
-        item.index = index + 1;
-        item.scanCount_boxCount = item.scanCount + "/" + item.boxCount;
-        scanCountSum += item.scanCount;
-        boxCountSum += item.boxCount;
+      const { data: res } = await selPageSonList(params);
+      res.forEach((item) => {
+        item.idsList = item.ids.split(",");
+        item.boxNameAndBoxNo = item.boxName + item.boxNo;
+        item.scanCount = item.scanStatusStr
+          .split(",")
+          .filter((status) => status === "1").length;
       });
-      this.scanCountSum = scanCountSum;
-      this.boxCountSum = boxCountSum;
       this.pTableData = res;
       this.loading = false;
     },
@@ -314,6 +394,7 @@ export default {
         .querySelector(".vanCeliContainer")
         .getBoundingClientRect().height;
       this.listContainerHeight = pageContainerHeight - vanCeliContainerHeight;
+      this.getMainTable();
     });
   },
 };
@@ -375,6 +456,7 @@ export default {
         scroll-behavior: smooth; /* 平滑滚动效果 */
       }
       .tableClass {
+        // height: 100%;
         border: 1px solid #e6ebf5;
         border-bottom: none;
         table {

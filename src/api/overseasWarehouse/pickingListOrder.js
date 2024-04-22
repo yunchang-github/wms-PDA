@@ -11,6 +11,29 @@ export function selPageList(params) {
     });
 }
 
+// 子列表
+export function selPageSonList(params) {
+    return request({
+        url: PORT4 + "/storage/wmsOutboundPickingList/detailList",
+        method: "get",
+        params,
+    });
+}
+
+// FBA列表完成拣货
+export function FBACompletePick(data, params) {
+    return request({
+        url: PORT4 + "/storage/wmsOutboundPickingList/fbaCompletePick",
+        method: "post",
+        recordTitle: "FBA列表完成拣货",
+        types: 'json',
+        data,
+        params,
+        isShowGlobelLoading: true
+    });
+}
+
+
 // 箱号查询信息
 export function selPdaPickingListInfo(params) {
     return request({
@@ -38,6 +61,9 @@ export function pdaFbaCompletePick(params) {
         url: PORT4 + "/storage/wmsOutboundPickingList/pdaFbaCompletePick",
         method: "post",
         params,
-        isShowLoading:true
+        isShowLoading: true
     });
 }
+
+
+

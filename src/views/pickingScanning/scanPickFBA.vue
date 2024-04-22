@@ -23,7 +23,7 @@
             label="Picking Number"
             label-width="100px"
             placeholder="Click to type Picking Number"
-            @keydown.enter="pickingListNumberEnter"
+            @keyup.enter="pickingListNumberEnter"
             @focus="stopKeyborad"
             :readonly="readonly1"
           >
@@ -97,6 +97,7 @@
 </template>
 
 <script>
+import { Toast } from "vant";
 import { selPageList } from "@/api/overseasWarehouse/pickingListOrder";
 export default {
   data() {
@@ -107,6 +108,7 @@ export default {
       readonly1: false,
       autoFocus: false,
       pickingListNumber: "",
+      id: "",
       loading: false,
       pTableData: [],
       searchTableColumns: [
@@ -131,18 +133,46 @@ export default {
       }
     },
     pPickingListNumberClick(row) {
-      this.pickingListNumber = row.pickingListNumber;
-      this.pickingListNumberEnter();
-    },
-    pickingListNumberEnter() {
       this.$router.push({
         name: "scanBoxNo",
         query: {
           warehouseId: this.query.warehouseId,
           warehouseName: this.query.warehouseName,
-          pickingListNumber: this.pickingListNumber,
+          pickingListNumber: row.pickingListNumber,
+          id: row.id,
         },
       });
+    },
+    pickingListNumberEnter() {
+      if (!this.pickingListNumber) {
+        return Toast.fail({
+          message: "The Picking Number is empty",
+          position: "top",
+        });
+      }
+      let currentItem = this.pTableData.find(
+        (item) => item.pickingListNumber === this.pickingListNumber
+      );
+      if (currentItem) {
+        this.readonly1 = true;
+        setTimeout(() => {
+          this.$router.push({
+            name: "scanBoxNo",
+            query: {
+              warehouseId: this.query.warehouseId,
+              warehouseName: this.query.warehouseName,
+              pickingListNumber: currentItem.pickingListNumber,
+              id: currentItem.id,
+            },
+          });
+        }, 500);
+      } else {
+        this.pickingListNumber = "";
+        return Toast.fail({
+          message: "The picking list does not exist",
+          position: "top",
+        });
+      }
     },
     async getMainTable() {
       this.loading = true;
