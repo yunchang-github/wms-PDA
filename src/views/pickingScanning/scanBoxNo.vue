@@ -135,7 +135,6 @@
                     <tr
                       v-for="(option, index) in showTable"
                       :key="index"
-                      @click="pPickingListNumberClick(option)"
                       :class="{
                         successScanClass: option.scanCount === option.boxCount,
                       }"
@@ -146,7 +145,14 @@
                           align="center"
                           :key="i"
                         >
-                          {{ option[item.prop] }}
+                          <template v-if="item.prop === 'boxName'">
+                            <span @click.stop="showFnskuBtn(option)">{{
+                              option[item.prop]
+                            }}</span>
+                          </template>
+                          <template v-else>
+                            {{ option[item.prop] }}
+                          </template>
                         </td>
                       </template>
                     </tr>
@@ -228,7 +234,7 @@ import {
   FBACompletePick,
   boxInventoryList,
 } from "@/api/overseasWarehouse/pickingListOrder";
-import { Toast, Dialog } from "vant";
+import { Toast, Dialog, Notify } from "vant";
 export default {
   data() {
     let that = this;
@@ -278,12 +284,24 @@ export default {
       // 去除 混装数据
       let tableDataRemoveBoxNo = this.$globalFun.removeDupAndSumByKey(
         this.pTableData,
-        "boxNameAndBoxNo"
+        "boxNameAndBoxNo",
+        [],
+        ["fnsku", "boxQuantity"]
       );
+      tableDataRemoveBoxNo.forEach((item) => {
+        let skuStr = item.child
+          .map((val) => {
+            return "&" + val.fnsku + "~" + val.boxQuantity;
+          })
+          .sort()
+          .join(",");
+        item.fnskuList = JSON.parse(JSON.stringify(item.child));
+        item.boxOnlyKey = item.boxNameAndLocationName + skuStr;
+      });
       // 去重 箱名加库位
       let showTable = this.$globalFun.removeDupAndSumByKey(
         tableDataRemoveBoxNo,
-        "boxNameAndLocationName",
+        "boxOnlyKey",
         ["scanCount", "boxCount"],
         ["boxNo", "scanStatus", "boxName"]
       );
@@ -301,6 +319,17 @@ export default {
     },
   },
   methods: {
+    showFnskuBtn(row) {
+      let message =
+        "箱明细数据\n" +
+        row.fnskuList
+          .map(
+            (item) =>
+              "FNSKU：" + item.fnsku + "  " + "数量：" + item.boxQuantity
+          )
+          .join("\n");
+      Notify({ type: "primary", message, duration: 1500 });
+    },
     replaceableCancel() {
       this.replaceableBoxNoVisible = false;
       this.replaceableTableData = [];
@@ -337,7 +366,7 @@ export default {
             locationName: item.locationName,
             skuListStr: item.warehouseInventoryBoxDetailVOS
               .map((val) => {
-                return val.fnsku + "-" + val.totalQuantity;
+                return val.fnsku + "&" + val.totalQuantity;
               })
               .sort()
               .join(","),
@@ -363,7 +392,7 @@ export default {
                 locationName: item.locationName,
                 skuListStr: item.warehouseInventoryBoxDetailVOS
                   .map((val) => {
-                    return val.fnsku + "-" + val.totalQuantity;
+                    return val.fnsku + "&" + val.totalQuantity;
                   })
                   .sort()
                   .join(","),
@@ -504,9 +533,6 @@ export default {
       });
       return list;
     },
-    pPickingListNumberClick(row) {
-      this.pickingListNumber = row.pickingListNumber;
-    },
     // 扫描箱号
     async boxNoEnter() {
       try {
@@ -537,7 +563,7 @@ export default {
       res.forEach((item) => {
         item.idsList = item.ids.split(",");
         item.boxNameAndBoxNo = item.boxName + item.boxNo;
-        item.boxNameAndLocationName = item.boxName + item.locationName;
+        item.boxNameAndLocationName = item.boxName + "," + item.locationName;
         item.scanCount = item.scanStatusStr
           .split(",")
           .filter((status) => status === "1").length;

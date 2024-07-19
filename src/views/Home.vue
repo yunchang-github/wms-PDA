@@ -126,7 +126,14 @@ export default {
               labelZn: "库位盘点",
               pageName: "InventoryBylocation",
             },
-            {},
+            {
+              label: "Specify Box <br> Shift",
+              labelZn: "指定箱货移位",
+              pageName: "specifyBoxShift",
+              query: {
+                pageFlag: "box",
+              },
+            },
             {},
             {
               label: "Location <br> Shift",

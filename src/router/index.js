@@ -37,7 +37,13 @@ const routes = [
     name: "AllShiftPage",
     component: resolve => require(["@/views/translocation/AllShiftPage.vue"], resolve)
   },
-  // FBA发货
+  // 指定箱子转移页面
+  {
+    path: "/specifyBoxShift",
+    name: "specifyBoxShift",
+    component: resolve => require(["@/views/translocation/specifyBoxShift.vue"], resolve)
+    // FBA发货
+  },
   {
     path: "/fbaDelivery",
     name: "fbaDelivery",
@@ -49,8 +55,8 @@ const routes = [
     name: "scanPickFBA",
     component: resolve => require(["@/views/pickingScanning/scanPickFBA.vue"], resolve)
   },
-   // FBA-箱号扫描
-   {
+  // FBA-箱号扫描
+  {
     path: "/scanBoxNo",
     name: "scanBoxNo",
     component: resolve => require(["@/views/pickingScanning/scanBoxNo.vue"], resolve)
