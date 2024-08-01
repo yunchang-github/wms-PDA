@@ -422,6 +422,12 @@ export default {
       //当前箱号或SKU置顶
       this.moveObjectToTop(this.searchList, this.list, prop);
       this[prop] = "";
+      if (prop === "boxNo" || prop === "msku") {
+        this.autoFocus = true;
+        this.$nextTick(() => {
+          this.$refs.focusInputRef2 && this.$refs.focusInputRef2.focus();
+        });
+      }
     },
     // 置顶
     moveObjectToTop(searchList, list, prop) {

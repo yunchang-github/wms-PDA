@@ -19,6 +19,12 @@ const routes = [
     name: "Home",
     component: resolve => require(["@/views/Home.vue"], resolve)
   },
+  // 大货签收
+  {
+    path: "/BoxNoSignPage",
+    name: "BoxNoSignPage",
+    component: resolve => require(["@/views/inbound/BoxNoSignPage.vue"], resolve)
+  },
   // 所有上架页面
   {
     path: "/AllPutawayPage",

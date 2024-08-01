@@ -87,6 +87,14 @@ export default {
           color: "#409eff",
           list: [
             {
+              label: "Box NO.<br> Sign",
+              labelZn: "大货签收",
+              pageName: "BoxNoSignPage",
+              query: {},
+            },
+            {},
+            {},
+            {
               label: "Pallet <br> Putaway",
               labelZn: "按托上架",
               pageName: "AllPutawayPage",
@@ -305,10 +313,10 @@ export default {
   background-color: #f1f1f1;
   font-size: 16px;
   .homeContainter {
-    padding: 20px;
+    padding: 10px 20px;
     height: calc(100%-40px);
     .titleContainer {
-      margin-bottom: 20px;
+      margin-bottom: 10px;
       .titleClass {
         border-left: 4px solid #409eff;
         padding-left: 20px;
@@ -318,13 +326,13 @@ export default {
         display: flex;
         justify-content: space-between;
         flex-wrap: wrap;
-        margin: 20px 0;
+        margin-top: 20px;
         .vanColClass {
           flex: 0 0 32%;
           margin-bottom: 15px;
           .vanColDivClass {
             background-color: #fff;
-            padding: 15px;
+            padding: 12px;
             font-size: 14px;
             text-align: center;
           }
