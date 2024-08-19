@@ -1,4 +1,23 @@
 import { Toast } from "vant";
+import chongfu from "@/assets/chongfu.mp3";
+import chenggong from "@/assets/chenggong.mp3";
+import cuowu from "@/assets/cuowu.mp3";
+import tihuanchenggong from "@/assets/tihuanchenggong.mp3";
+
+function webSpeakFun(speakVal) {
+    let mp3 = null;
+    if (speakVal === "重复") {
+        mp3 = chongfu;
+    } else if (speakVal === "成功") {
+        mp3 = chenggong;
+    } else if (speakVal === "错误") {
+        mp3 = cuowu;
+    } else if (speakVal === "替换成功") {
+        mp3 = tihuanchenggong;
+    }
+    var audio = new Audio(mp3);
+    audio.play();
+}
 
 //浮点数精度丢失   小数位过多也有可能不准确 对值进行四舍五入
 // js 精度处理
@@ -106,6 +125,7 @@ function removeDupAndSumByKey(arr, key, needSumPropList = [], childList = []) {
  * 将方法暴露出去
  */
 export default {
+    webSpeakFun,
     accAdd,// 加
     Subtr,//减
     accMul,//乘

@@ -191,43 +191,6 @@ export default {
         this.autoFocus = false;
       }
     },
-    closeBtn() {
-      this.searchList = [];
-      this.list = [];
-      this.checkList = [];
-    },
-    // 箱号回车
-    boxNoEnter() {
-      document.activeElement.blur();
-      if (!this.boxNos) {
-        return Toast.fail({
-          message: `BoxNo. is empty`, //查询条件为空
-          position: "top",
-        });
-      }
-      if (!this.checkList.includes(this.boxNos)) {
-        this.checkList.unshift(this.boxNos);
-      }
-      this.getList("focusInputRef1");
-    },
-    // 箱号回车  存储箱号
-    boxNoAndSkuEnter(prop, label) {
-      //当前箱号或SKU置顶
-      this.moveObjectToTop(this.searchList, this.list, prop);
-    },
-    // 置顶
-    moveObjectToTop(searchList, list, prop) {
-      const index = searchList.findIndex((obj) => obj[prop] === this[prop]); // 找到该对象的索引
-      const LIndex = list.findIndex((obj) => obj[prop] === this[prop]); // 找到该对象的索引
-      if (index !== -1) {
-        // 在searchList找到相同的箱号
-        const obj = searchList[index];
-        if (LIndex !== -1) {
-          list.splice(LIndex, 1); // 将该对象从数组中删除
-        }
-        list.unshift(obj); // 将该对象添加到数组的开头
-      }
-    },
     // 输入框 移位
     async chiftBtn() {
       document.activeElement.blur();
@@ -269,6 +232,33 @@ export default {
         this.$refs["focusInputRef1"] && this.$refs["focusInputRef1"].focus();
       });
     },
+    closeBtn() {
+      this.searchList = [];
+      this.list = [];
+      this.checkList = [];
+    },
+    // 箱号回车
+    boxNoEnter() {
+      document.activeElement.blur();
+      if (!this.boxNos) {
+        return Toast.fail({
+          message: `BoxNo. is empty`, //查询条件为空
+          position: "top",
+        });
+      }
+      let inputRef = "focusInputRef1";
+      if (!this.checkList.includes(this.boxNos)) {
+        this.checkList.unshift(this.boxNos);
+        this.getList(inputRef);
+      } else {
+        this.$globalFun.webSpeakFun(`重复`);
+        this.boxNos = "";
+        this.autoFocus = true;
+        this.$nextTick(() => {
+          this.$refs[inputRef] && this.$refs[inputRef].focus();
+        });
+      }
+    },
     // 调接口获取数据
     async getList(inputRef) {
       const data = {
@@ -288,12 +278,18 @@ export default {
         item.tempBoxNo = item.boxNo;
         boxNoList.push(item.boxNo);
       });
+      let checkListNumO = this.checkList.length;
       if (boxNoList.length === 0) {
         this.checkList = [];
       } else {
         this.checkList = this.checkList.filter((boxNo) =>
           boxNoList.includes(boxNo)
         );
+      }
+      if (checkListNumO === this.checkList.length) {
+        this.$globalFun.webSpeakFun(`成功`);
+      } else {
+        this.$globalFun.webSpeakFun(`错误`);
       }
       let listRemoveByBoxNo = this.$globalFun.removeDupAndSumByKey(
         res,
