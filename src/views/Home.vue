@@ -170,7 +170,7 @@ export default {
           ],
         },
         {
-          title: "Picking scanning",
+          title: "OUTBOUND",
           titleZn: "大货扫描",
           color: "#d642de",
           list: [
@@ -179,6 +179,12 @@ export default {
               labelZn: "FBA拣货扫描",
               pageName: "scanPickFBA",
             },
+            {
+              label: "Unpack <br>  Box",
+              labelZn: "拆箱",
+              pageName: "unboxing",
+            },
+            {},
           ],
         },
         // {

@@ -28,7 +28,7 @@ export function FBACompletePick(data, params) {
         types: 'json',
         data,
         params,
-        isShowGlobelLoading: true
+        isShowLoading: true
     });
 }
 

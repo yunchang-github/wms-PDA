@@ -67,6 +67,12 @@ const routes = [
     name: "scanBoxNo",
     component: resolve => require(["@/views/pickingScanning/scanBoxNo.vue"], resolve)
   },
+  // 拆箱
+  {
+    path: "/unboxing",
+    name: "unboxing",
+    component: resolve => require(["@/views/pickingScanning/unboxing.vue"], resolve)
+  },
 ];
 
 const router = new VueRouter({
