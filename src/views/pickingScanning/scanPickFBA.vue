@@ -139,7 +139,7 @@ export default {
           warehouseId: this.query.warehouseId,
           warehouseName: this.query.warehouseName,
           pickingListNumber: row.pickingListNumber,
-          companyId:row.companyId,
+          companyId: row.companyId,
           id: row.id,
         },
       });
@@ -163,7 +163,7 @@ export default {
               warehouseId: this.query.warehouseId,
               warehouseName: this.query.warehouseName,
               pickingListNumber: currentItem.pickingListNumber,
-              companyId:currentItem.companyId,
+              companyId: currentItem.companyId,
               id: currentItem.id,
             },
           });
@@ -181,7 +181,7 @@ export default {
       const params = {
         pageSize: 99999,
         pageNum: 1,
-        businessType: 1, //FBA
+        businessType: "1,3,4,5", //大货
         pickingListStatus: "2", //拣货中
         warehouseIds: this.query.warehouseId,
       };

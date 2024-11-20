@@ -95,7 +95,15 @@
                   <span class="fsize14fweight700" style="color: #464242"
                     >BoxNo：{{ item.boxNo }}</span
                   >
-                  <span class="textIconClass">BOX</span>
+                  <span v-if="item.inStorageStatus === 1" class="textIconClass"
+                    >BOX</span
+                  >
+                  <span
+                    v-else
+                    class="textIconClass"
+                    style="background-color: #545c64"
+                    >PCS</span
+                  >
                 </div>
                 <div
                   style="display: flex; margin-bottom: 6px"
@@ -265,7 +273,7 @@ export default {
         type: 2, //2 代表按照给的箱号顺序排序
         warehouseId: this.query.warehouseId,
         boxNos: this.checkList.join(","),
-        inStorageStatus: 1,
+        // inStorageStatus: 1,
       };
       this.searchLoading = true;
       this.searchList = [];

@@ -239,7 +239,7 @@ export default {
       const data = {
         warehouseIds: this.query.warehouseId,
         inStorageNumber: this.inStorageNumber,
-        businessType: 1,
+        businessType: "1,3,4,5",
         pageNum: 1,
         pageSize: 1,
       };
