@@ -205,7 +205,7 @@
                       <div>Box Count <br />{{ item.boxCount }}</div>
                     </van-col>
                     <van-col span="7" style="border-left: 1px solid #ccc">
-                      <div>Box Qty <br />{{ item.boxQuantity }}</div>
+                      <div>Box Qty <br />{{ item.totalQuantity }}</div>
                     </van-col>
                   </template>
                   <template v-else>

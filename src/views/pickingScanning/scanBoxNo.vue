@@ -286,12 +286,12 @@ export default {
         this.pTableData,
         "boxNameAndBoxNo",
         [],
-        ["fnsku", "boxQuantity"]
+        ["fnsku", "totalQuantity"]
       );
       tableDataRemoveBoxNo.forEach((item) => {
         let skuStr = item.child
           .map((val) => {
-            return "&" + val.fnsku + "~" + val.boxQuantity;
+            return "&" + val.fnsku + "~" + val.totalQuantity;
           })
           .sort()
           .join(",");
@@ -325,7 +325,7 @@ export default {
         row.fnskuList
           .map(
             (item) =>
-              "FNSKU：" + item.fnsku + "  " + "数量：" + item.boxQuantity
+              "FNSKU：" + item.fnsku + "  " + "数量：" + item.totalQuantity
           )
           .join("\n");
       Notify({ type: "primary", message, duration: 1500 });

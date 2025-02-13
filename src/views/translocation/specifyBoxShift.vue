@@ -129,7 +129,7 @@
                     </van-image>
                   </div>
                   <div>
-                    SKU：{{ skuItem.msku }} * {{ skuItem.boxQuantity }}<br />
+                    SKU：{{ skuItem.msku }} * {{ skuItem.totalQuantity }}<br />
                     {{ skuItem.mskuName }}
                   </div>
                 </div>
@@ -146,7 +146,7 @@
                     <div>Box Count <br />{{ item.boxCount }}</div>
                   </van-col>
                   <van-col span="7" style="border-left: 1px solid #ccc">
-                    <div>Box Qty <br />{{ item.boxQuantity }}</div>
+                    <div>Box Qty <br />{{ item.totalQuantity }}</div>
                   </van-col>
                 </van-row>
               </div>
@@ -302,8 +302,8 @@ export default {
       let listRemoveByBoxNo = this.$globalFun.removeDupAndSumByKey(
         res,
         "tempBoxNo",
-        ["boxQuantity"],
-        ["imageUrl", "msku", "mskuId", "mskuName", "newMskuId", "boxQuantity"]
+        ["totalQuantity"],
+        ["imageUrl", "msku", "mskuId", "mskuName", "newMskuId", "totalQuantity"]
       );
       listRemoveByBoxNo.forEach((item, i) => {
         item.index = i;
