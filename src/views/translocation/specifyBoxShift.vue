@@ -308,7 +308,13 @@ export default {
       listRemoveByBoxNo.forEach((item, i) => {
         item.index = i;
         item.originalLocationId = item.locationId;
-        item.adjustQuantity = item.boxCount;
+        if (item.inStorageStatus === 1) {
+          // 整箱
+          item.adjustQuantity = item.boxCount;
+        } else {
+          // 散货
+          item.adjustQuantity = item.totalQuantity;
+        }
         item.locationNameTarget = "";
       });
       this.searchLoading = false;
