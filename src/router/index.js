@@ -33,9 +33,9 @@ const routes = [
   },
   // 盘点
   {
-    path: "/InventoryBylocation",
-    name: "InventoryBylocation",
-    component: resolve => require(["@/views/inventory/InventoryBylocation.vue"], resolve)
+    path: "/InventoryCheckPage",
+    name: "InventoryCheckPage",
+    component: resolve => require(["@/views/inventory/InventoryCheckPage.vue"], resolve)
   },
   // 所有转移页面
   {

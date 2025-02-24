@@ -158,7 +158,7 @@
   </div>
 </template>
     
-    <script>
+<script>
 import { selPageList } from "@/api/inventory/InventoryBylocation";
 import { addAndRemove } from "@/api/translocation/LocationMerge";
 import { Toast } from "vant";
@@ -206,7 +206,14 @@ export default {
       this.searchList.forEach((item) => {
         if (this.checkList.includes(item.boxNo)) {
           item.child.forEach((childItem) => {
-            list.push({ ...item, ...childItem });
+            list.push({
+              ...item,
+              ...childItem,
+              adjustQuantity:
+                item.inStorageStatus === 1 // 整箱
+                  ? item.boxCount
+                  : childItem.totalQuantity,
+            });
           });
         }
       });
@@ -308,13 +315,6 @@ export default {
       listRemoveByBoxNo.forEach((item, i) => {
         item.index = i;
         item.originalLocationId = item.locationId;
-        if (item.inStorageStatus === 1) {
-          // 整箱
-          item.adjustQuantity = item.boxCount;
-        } else {
-          // 散货
-          item.adjustQuantity = item.totalQuantity;
-        }
         item.locationNameTarget = "";
       });
       this.searchLoading = false;

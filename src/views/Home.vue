@@ -110,14 +110,15 @@ export default {
                 pageFlag: "box",
               },
             },
-            {
-              label: "SKU  <br> Putaway",
-              labelZn: "按件上架",
-              pageName: "AllPutawayPage",
-              query: {
-                pageFlag: "msku",
-              },
-            },
+            {},
+            // {
+            //   label: "SKU  <br> Putaway",
+            //   labelZn: "按件上架",
+            //   pageName: "AllPutawayPage",
+            //   query: {
+            //     pageFlag: "msku",
+            //   },
+            // },
           ],
         },
         {
@@ -130,18 +131,11 @@ export default {
             //   labelZn: "盘点单",
             // },
             {
-              label: "Location <br> Check",
+              label: "Inventory <br> Check",
               labelZn: "库位盘点",
-              pageName: "InventoryBylocation",
+              pageName: "InventoryCheckPage",
             },
-            {
-              label: "Specify Box <br> Shift",
-              labelZn: "指定箱货移位",
-              pageName: "specifyBoxShift",
-              query: {
-                pageFlag: "box",
-              },
-            },
+            {},
             {},
             {
               label: "Location <br> Shift",
@@ -152,21 +146,30 @@ export default {
               },
             },
             {
-              label: "BoxNO. <br> Shift",
-              labelZn: "箱货移位",
-              pageName: "AllShiftPage",
+              label: "Specify Box <br> Shift",
+              labelZn: "指定箱货移位",
+              pageName: "specifyBoxShift",
               query: {
                 pageFlag: "box",
               },
             },
-            {
-              label: "SKU <br> Shift",
-              labelZn: "散货移位",
-              pageName: "AllShiftPage",
-              query: {
-                pageFlag: "msku",
-              },
-            },
+            {},
+            // {
+            //   label: "BoxNO. <br> Shift",
+            //   labelZn: "箱货移位",
+            //   pageName: "AllShiftPage",
+            //   query: {
+            //     pageFlag: "box",
+            //   },
+            // },
+            // {
+            //   label: "SKU <br> Shift",
+            //   labelZn: "散货移位",
+            //   pageName: "AllShiftPage",
+            //   query: {
+            //     pageFlag: "msku",
+            //   },
+            // },
           ],
         },
         {
