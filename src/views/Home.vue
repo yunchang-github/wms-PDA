@@ -130,13 +130,13 @@ export default {
             //   label: "Check <br> List",
             //   labelZn: "盘点单",
             // },
-            {
-              label: "Inventory <br> Check",
-              labelZn: "库位盘点",
-              pageName: "InventoryCheckPage",
-            },
-            {},
-            {},
+            // {
+            //   label: "Bulk cargo <br> Check",
+            //   labelZn: "库位盘点",
+            //   pageName: "InventoryCheckPage",
+            // },
+            // {},
+            // {},
             {
               label: "Location <br> Shift",
               labelZn: "货位合并",

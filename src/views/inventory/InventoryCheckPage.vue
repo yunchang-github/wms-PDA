@@ -1,6 +1,6 @@
 <template>
   <div id="PalletPutaway">
-    <van-nav-bar title="Location Check">
+    <van-nav-bar title="Bulk cargo Check">
       <template #left>
         <svg class="icon navBarIcon" aria-hidden="true" @click.stop="goBack">
           <use xlink:href="#icon-zuojiantou"></use>
@@ -13,77 +13,35 @@
         </svg> -->
       </template>
     </van-nav-bar>
-    <van-tabs class="vanTabs" @click="onClick" v-model="vanTabsValue">
-      <van-tab title="All" name="All"></van-tab>
-      <van-tab title="BOX" name="BOX"></van-tab>
-      <van-tab title="PCS" name="PCS"></van-tab>
-    </van-tabs>
     <div class="pageContainer">
       <div class="vanCeliContainer">
         <van-cell-group>
           <van-field
             ref="focusInputRef1"
-            v-model="locationName"
-            label="Location"
-            placeholder="Click to type location"
-            @keydown.enter="getListByEnter('Location')"
+            v-model="boxName"
+            label="BoxName"
+            placeholder="请扫描或输入箱名"
+            @keydown.enter="getListByEnter('boxName')"
             @focus="stopKeyborad"
             :readonly="readonly1"
+            clearable
+            @clear="resetDataFun('boxName', 'focusInputRef1')"
           >
-            <template #button>
-              <div style="line-height: 0">
-                <van-button
-                  size="mini"
-                  type="warning"
-                  @click="resetDataFun('locationName', 'focusInputRef1')"
-                  >Clear</van-button
-                >
-              </div>
-            </template>
           </van-field>
         </van-cell-group>
         <van-cell-group>
           <van-field
             ref="focusInputRef2"
-            v-model="msku"
-            label="SKU"
-            placeholder="Click to type SKU"
-            @keydown.enter="getListByEnter('SKU')"
+            v-model="fnsku"
+            label="FNSKU"
+            placeholder="扫描FNSKU条码可置顶"
+            @keydown.enter="getListByEnter('fnsku')"
             @focus="stopKeyborad"
+            :disabled="disabledSku"
+            clearable
+            @clear="resetDataFun('fnsku', 'focusInputRef2')"
             :readonly="readonly1"
           >
-            <template #button>
-              <div style="line-height: 0">
-                <van-button
-                  size="mini"
-                  type="warning"
-                  @click="resetDataFun('msku', 'focusInputRef2')"
-                  >Clear</van-button
-                >
-              </div>
-            </template>
-          </van-field>
-        </van-cell-group>
-        <van-cell-group v-show="vanTabsValue !== 'PCS'">
-          <van-field
-            ref="focusInputRef3"
-            v-model="boxNo"
-            label="boxNO."
-            placeholder="Click to type boxNO."
-            @keydown.enter="getListByEnter('boxNO.')"
-            @focus="stopKeyborad"
-            :readonly="readonly1"
-          >
-            <template #button>
-              <div style="line-height: 0">
-                <van-button
-                  size="mini"
-                  type="warning"
-                  @click="resetDataFun('boxNo', 'focusInputRef3')"
-                  >Clear</van-button
-                >
-              </div>
-            </template>
           </van-field>
         </van-cell-group>
       </div>
@@ -111,180 +69,72 @@
                 :key="item.index"
               >
                 <div class="vanCell_Div">
-                  <template v-if="item.inStorageStatus === 1">
-                    <!-- 整箱 -->
-                    <div
-                      class="textIconContainer textIconContainerBox flexBetweenCenter"
+                  <!-- 整箱 -->
+                  <div class="flexBetweenCenter textIconContainerBox">
+                    <div class="fsize14fweight700">
+                      <span class="mr20">货位：{{ item.locationName }}</span>
+                      <span class="mr20">总数：{{ item.totalQuantity }}</span>
+                      <span
+                        :style="{
+                          color:
+                            item.totalQuantity !== item.actualTotalQuantity
+                              ? 'red'
+                              : '',
+                        }"
+                        >盘后总数：{{ item.actualTotalQuantity }}</span
+                      >
+                    </div>
+                    <van-button
+                      size="mini"
+                      type="primary"
+                      @click.stop="checkBtn(item)"
+                      >确认盘点</van-button
                     >
-                      <span class="fsize14fweight700" style="color: #464242"
-                        >BoxNo：{{ item.boxNo }}</span
-                      >
-                      <span class="textIconClass">BOX</span>
-                    </div>
-                    <div
-                      style="display: flex; margin-bottom: 6px"
-                      v-for="(skuItem, skuI) in item.child"
-                      :key="skuI"
-                    >
-                      <div
-                        style="
-                          width: 1.6rem;
-                          margin-right: 6px;
-                          line-height: 0;
-                          border: 1px solid #eee;
-                        "
-                      >
-                        <van-image
-                          width="1.6rem"
-                          height="1.6rem"
-                          fit="contain"
-                          @click="imagePreview(skuItem.imageUrl)"
-                          :src="skuItem.imageUrl"
-                        >
-                          <template v-slot:error>加载失败</template>
-                        </van-image>
-                      </div>
-                      <div>
-                        SKU：{{ skuItem.msku }} * {{ skuItem.totalQuantity
-                        }}<br />
-                        {{ skuItem.mskuName }}
-                      </div>
-                    </div>
-                  </template>
-                  <template v-else>
-                    <div style="display: flex; margin-bottom: 6px">
-                      <div
-                        style="
-                          width: 2.2rem;
-                          margin-right: 6px;
-                          line-height: 0;
-                          border: 1px solid #eee;
-                        "
-                      >
-                        <van-image
-                          width="2.2rem"
-                          height="2.2rem"
-                          fit="contain"
-                          @click="imagePreview(item.imageUrl)"
-                          :src="item.imageUrl"
-                        >
-                          <template v-slot:error>加载失败</template>
-                        </van-image>
-                      </div>
-                      <div>
-                        <!-- 散货 -->
-                        <div class="textIconContainer">
-                          <span
-                            class="textIconClass"
-                            style="background-color: #545c64"
-                            >PCS</span
-                          >
-                          <span>SKU：{{ item.msku }} </span>
-                        </div>
-                        {{ item.mskuName }}
-                      </div>
-                    </div>
-                  </template>
-                  <van-row class="vanRow">
-                    <van-col span="10" style="border-right: 1px solid #ccc"
-                      ><div>
-                        Location <br />
-                        <span>{{ item.locationName }}</span>
-                      </div>
-                    </van-col>
-                    <template v-if="item.inStorageStatus === 1">
-                      <!-- 整箱 -->
-                      <van-col span="7">
-                        <div>Box Count <br />{{ item.boxCount }}</div>
-                      </van-col>
-                      <van-col span="7" style="border-left: 1px solid #ccc">
-                        <div>Box Qty <br />{{ item.totalQuantity }}</div>
-                      </van-col>
-                    </template>
-                    <template v-else>
-                      <van-col span="7"> </van-col>
-                      <van-col span="7" style="border-left: 1px solid #ccc">
-                        <div>Total Qty <br />{{ item.totalQuantity }}</div>
-                      </van-col>
-                    </template>
-                  </van-row>
-                  <van-row
-                    class="vanRow"
-                    style="background-color: #fff; padding: 5px 0"
+                  </div>
+                  <div
+                    class="flexStartCenter childItemClass"
+                    :class="{
+                      lastChildItemClass: skuI + 1 === item.child.length,
+                    }"
+                    v-for="(skuItem, skuI) in item.child"
+                    :key="skuI"
                   >
-                    <van-col span="5"
-                      ><div style="display: flex; justify-content: center">
-                        <van-button
-                          size="mini"
-                          type="primary"
-                          @click.stop="checkBtn(item)"
-                          >Inventory</van-button
-                        >
-                      </div>
-                    </van-col>
-                    <template v-if="item.inStorageStatus === 1">
-                      <!-- 整箱 -->
-                      <van-col span="5"> </van-col>
-                      <van-col span="7">
-                        <div style="display: flex; justify-content: center">
-                          <input
-                            type="text"
-                            v-model.trim="item.adjustQuantity"
-                            placeholder="Enter adjustQuantity"
-                            style="
-                              width: 80%;
-                              border: 1px solid #ccc;
-                              box-sizing: border-box;
-                            "
-                          />
-                        </div>
-                      </van-col>
-                    </template>
-                    <template v-else>
-                      <van-col span="12"> </van-col>
-                      <van-col span="7">
-                        <div style="display: flex; justify-content: center">
-                          <input
-                            type="text"
-                            v-model.trim="item.adjustQuantity"
-                            placeholder="Enter adjustQuantity"
-                            style="
-                              width: 80%;
-                              border: 1px solid #ccc;
-                              box-sizing: border-box;
-                            "
-                          />
-                        </div>
-                      </van-col>
-                      <van-col span="7"> </van-col>
-                    </template>
-                  </van-row>
-                  <!-- <div>
-                      <van-field
-                        class="digitFieldClass"
-                        type="digit"
-                        v-model.trim="item.adjustQuantity"
-                        :label="
-                          item.inStorageStatus === 1
-                            ? 'Counted box Count'
-                            : 'Counted SKU Qty'
-                        "
-                        label-width="41%"
-                        placeholder="Please enter"
-                        style="padding: 5px"
+                    <div
+                      style="
+                        width: 1.2rem;
+                        margin-right: 6px;
+                        line-height: 0;
+                        border: 1px solid #eee;
+                      "
+                    >
+                      <van-image
+                        width="1.2rem"
+                        height="1.2rem"
+                        fit="contain"
+                        @click="imagePreview(skuItem.imageUrl)"
+                        :src="skuItem.imageUrl"
                       >
-                        <template #button>
-                          <div style="line-height: 0; margin-left: 20px">
-                            <van-button
-                              size="mini"
-                              type="primary"
-                              @click.stop="checkBtn(item)"
-                              >Inventory</van-button
-                            >
-                          </div>
-                        </template>
-                      </van-field>
-                    </div> -->
+                        <template v-slot:error>加载失败</template>
+                      </van-image>
+                    </div>
+                    <div class="tableListTextClass">
+                      FNSKU：{{ skuItem.fnsku }}<br />
+                      MSKU：{{ skuItem.msku }}
+                    </div>
+                    <div class="adjustInputClass">
+                      <input
+                        type="text"
+                        v-model.trim="skuItem.actualQuantity"
+                        placeholder="Actual Qty"
+                        style="
+                          width: 100%;
+                          border: 1px solid #ccc;
+                          box-sizing: border-box;
+                        "
+                        @input="adjustInputCHange(skuItem, item)"
+                      />
+                    </div>
+                  </div>
                 </div>
               </van-cell>
             </van-list>
@@ -296,10 +146,7 @@
 </template>
     
     <script>
-import {
-  selPageList,
-  inventoryCheck,
-} from "@/api/inventory/InventoryBylocation";
+import { selBulkInventoryList } from "@/api/storage/InventoryCheckPage";
 import { Toast } from "vant";
 export default {
   data() {
@@ -308,10 +155,9 @@ export default {
       query: that.$route.query,
       readonly1: false,
       autoFocus: false,
-      vanTabsValue: "All",
-      locationName: "",
-      msku: "",
+      fnsku: "",
       boxNo: "",
+      boxName: "",
       listContainerHeight: 0,
       list: [],
       loading: false,
@@ -321,15 +167,20 @@ export default {
       searchList: [], //查询获取到的List
     };
   },
+  computed: {
+    disabledSku() {
+      let flag = Boolean(this.boxName && this.searchList.length > 0);
+      return !flag;
+    },
+  },
   methods: {
-    stopKeyborad() {
-      if (this.autoFocus) {
-        this.readonly1 = true;
-        setTimeout(() => {
-          this.readonly1 = false;
-        }, 200);
-        this.autoFocus = false;
-      }
+    // 调整数量改变
+    adjustInputCHange(row, item) {
+      item.actualTotalQuantity = item.child.reduce((acc, cur) => {
+        acc += Number(cur.actualQuantity || 0);
+        return acc;
+      }, 0);
+      console.log(row);
     },
     async checkBtn(item) {
       if (!item.adjustQuantity && item.adjustQuantity !== 0)
@@ -348,18 +199,6 @@ export default {
       });
       this.getList();
     },
-    onClick() {
-      //   this.locationName = "";
-      //   this.msku = "";
-      if (this.locationName || this.msku) {
-        this.getList();
-      } else {
-        this.list = [];
-      }
-      this.boxNo = "";
-      this.autoFocus = true;
-      this.$refs["focusInputRef1"].focus();
-    },
     // 重置
     resetDataFun(prop, serachInputRef) {
       this[prop] = "";
@@ -370,51 +209,34 @@ export default {
     // 调接口获取数据
     async getList() {
       const data = {
-        warehouseId: this.query.warehouseId,
-        locationName: this.locationName,
-        msku: this.msku,
+        isWms: 2,
+        pageSize: 200,
+        pageNum: 1,
+        warehouseIds: this.query.warehouseId,
+        boxName: this.boxName,
+        fnsku: this.fnsku,
         boxNo: this.boxNo,
-        inStorageStatus:
-          this.vanTabsValue === "All"
-            ? null
-            : this.vanTabsValue === "BOX"
-            ? 1
-            : 2,
       };
       this.searchLoading = true;
       this.searchList = [];
       this.list = [];
-      const { data: res } = await selPageList(data);
-      res.forEach((item) => {
-        if (item.inStorageStatus === 1) {
-          // 整箱
-          item.tempBoxNo = item.boxNo;
-        } else {
-          // 散货
-          item.tempBoxNo = item.msku + item.mskuId;
-        }
-      });
-
-      let listRemoveByBoxNo = this.$globalFun.removeDupAndSumByKey(
-        res,
-        "tempBoxNo",
-        ["totalQuantity"],
-        ["imageUrl", "msku", "mskuId", "mskuName", "newMskuId", "totalQuantity"]
-      );
-      // 给散货取一个临时的boxNo
-      listRemoveByBoxNo.forEach((item, i) => {
-        item.index = i;
-        if (item.inStorageStatus === 1) {
-          // 整箱
-          item.adjustQuantity = item.boxCount;
-        } else {
-          // 散货
-          item.adjustQuantity = item.totalQuantity;
-        }
-      });
+      const { data: res } = await selBulkInventoryList(data);
       this.searchLoading = false;
-      if (listRemoveByBoxNo.length > 0) {
-        this.searchList = listRemoveByBoxNo;
+      if (res.records.length > 0) {
+        res.records.forEach((item) => {
+          item.actualTotalQuantity = item.totalQuantity;
+          item.child = item.warehouseBulkInventoryDetailVOS.map((val) => {
+            return {
+              msku: val.msku,
+              mskuId: val.mskuId,
+              fnsku: val.fnsku,
+              imageUrl: val.imageUrl,
+              totalQuantity: val.totalQuantity,
+              actualQuantity: val.totalQuantity,
+            };
+          });
+        });
+        this.searchList = res.records;
         // 清空列表数据
         this.finished = false;
         // 重新加载数据
@@ -428,11 +250,7 @@ export default {
     },
     // 回车查询
     getListByEnter(label) {
-      let flag =
-        this.vanTabsValue === "PCS"
-          ? !this.locationName && !this.msku
-          : !this.locationName && !this.msku && !this.boxNo;
-      if (flag) {
+      if (!this.boxName) {
         return Toast.fail({
           message: `The ${label} is empty`, //查询条件为空
           position: "top",
@@ -460,6 +278,15 @@ export default {
         }
       }, 300);
     },
+    stopKeyborad() {
+      if (this.autoFocus) {
+        this.readonly1 = true;
+        setTimeout(() => {
+          this.readonly1 = false;
+        }, 200);
+        this.autoFocus = false;
+      }
+    },
     // 返回首页
     goBack() {
       this.$router.go(-1);
@@ -471,7 +298,6 @@ export default {
   mounted() {
     this.autoFocus = true;
     this.$refs["focusInputRef1"].focus();
-    // this.locationName = "temp";
     // this.getList();
     // 获取list高度 pageContainer - vanCeliContainer getBoundingClientRect
     let pageContainerHeight = document
@@ -502,11 +328,18 @@ export default {
   .pageContainer {
     flex: 1;
     .vanCeliContainer {
-      border-bottom: 10px solid #f7f9fd;
+      border-bottom: 8px solid #f7f9fd;
     }
     .vanListContainer {
       overflow-y: scroll;
       scroll-behavior: smooth; /* 平滑滚动效果 */
+      .tableListTextClass {
+        flex: 1;
+        font-size: 14px;
+      }
+      .adjustInputClass {
+        width: 65px;
+      }
       .vanLoadingContainer {
         height: 100%;
         position: relative;
@@ -518,7 +351,7 @@ export default {
       }
       //   list
       .vanCell_Div {
-        border: 1px solid #eee;
+        border: 1px solid #ccc;
         padding: 6px;
         font-size: 12px;
         line-height: 20px;
@@ -527,21 +360,16 @@ export default {
             border: 1px solid #eee;
           }
         }
-        .textIconContainer {
-          margin-bottom: 4px;
-          .textIconClass {
-            font-size: 11px;
-            line-height: 12px;
-            background-color: #13227a;
-            color: #fff;
-            border-radius: 50%;
-            padding: 4px;
-            margin-right: 4px;
-          }
-        }
         .textIconContainerBox {
-          padding-bottom: 4px;
-          border-bottom: 1px solid #eee;
+          padding-bottom: 8px;
+          border-bottom: 1px solid #ccc;
+        }
+        .childItemClass {
+          padding: 8px 0;
+          border-bottom: 1px solid #ccc;
+        }
+        .lastChildItemClass {
+          border: none;
         }
         .vanRow {
           text-align: center;
